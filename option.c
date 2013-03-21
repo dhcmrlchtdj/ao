@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 			break;
 		case -1:
 			if (argc == 2) {
-				download_by_url(argv[1]);
+				direct_download(argv[1]);
 			} else {
 				print_usage();
 			}

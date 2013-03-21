@@ -22,23 +22,46 @@ typedef struct url_t url_t;
 ///////////////////
 
 #include "download.h"
-#include "http.h"
+#include "http_conn.h"
+#include "http_header.h"
+#include "http_request.h"
+#include "http_response.h"
 #include "option.h"
 #include "transport.h"
+#include "url.h"
 
 ///////////////////
 
 struct ao_t {
 	int sockfd;
+	unsigned long length;
 	char *filename;
 	FILE *file;
 	url_t *url;
 	request_t *request;
 	response_t *response;
+	tasklet_t *tasklet;
 };
 
+struct ao_tt {
+	unsigned long file_size;
+	char *file_name
+	FILE *fp;
+	url_t *url;
+	tasklet_t *tasklets;
+}
+
+struct tasklet {
+	int sockfd;
+	unsigned long received;
+	unsigned long start;
+	unsigned long stop;
+	request_t *request;
+	response_t *response;
+}
+
+ao_t *init_ao_t(void);
 void free_ao_t(ao_t *ao);
-char *_copy_str(char *src, size_t len);
 
 
 #endif
