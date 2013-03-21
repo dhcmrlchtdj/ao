@@ -1,4 +1,4 @@
-void create_tcp_conn(ao_t *ao);
+void create_tcp_conn(tasklet_t *tasklet);
 
 void send_all(int sockfd, void *data, size_t len);
 

@@ -9,7 +9,6 @@ void free_header_field_t(header_field_t *hf);
 
 
 char *get_header_field(header_field_t *hf, char *name);
-void add_header_field(header_field_t *hf, char *name, char *value);
 void set_header_field(header_field_t *hf, char *name, char *value);
 
 
@@ -21,4 +20,4 @@ void _print_header_field(header_field_t *hf); // used to debug
 
 
 void set_range(header_field_t *hf, char *start, char *stop);
-int get_length(ao_t *ao);
+//int get_length(ao_t *ao);

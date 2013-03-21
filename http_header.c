@@ -3,8 +3,8 @@
 
 header_field_t *gen_header_field(char *name, char *value) {
 	header_field_t *hf = malloc(sizeof(header_field_t));
-	hf->name = _copy_str(name, strlen(name));
-	hf->value = _copy_str(value, strlen(value));
+	hf->name = copy_str(name, strlen(name));
+	hf->value = copy_str(value, strlen(value));
 	hf->next = NULL;
 	return hf;
 }
@@ -52,7 +52,7 @@ void set_header_field(header_field_t *hf, char *name, char *value) {
 	while (hf) {
 		if (strcasecmp(hf->name, name) == 0) {
 			free(hf->value);
-			hf->value = _copy_str(value, strlen(value));
+			hf->value = copy_str(value, strlen(value));
 			break;
 		} else if (hf->next == NULL) {
 			hf->next = gen_header_field(name, value);
@@ -79,17 +79,17 @@ header_field_t *string_to_header(char *str);
 
 
 
-int get_length(ao_t *ao) {
-	char *p, *q;
-	p = get_header_field(ao->response->hf, "Content-Range");
-	if (p && (q = strchr(p, '/'))) {
-		ao->length = strtoul(++q, NULL, 0);
-		return 0;
-	} else {
-		ao->length = 0;
-		return 1;
-	}
-}
+/*int get_length(ao_t *ao) {*/
+	/*char *p, *q;*/
+	/*p = get_header_field(ao->response->hf, "Content-Range");*/
+	/*if (p && (q = strchr(p, '/'))) {*/
+		/*ao->length = strtoul(++q, NULL, 0);*/
+		/*return 0;*/
+	/*} else {*/
+		/*ao->length = 0;*/
+		/*return 1;*/
+	/*}*/
+/*}*/
 
 
 

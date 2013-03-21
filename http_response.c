@@ -1,15 +1,6 @@
 #include "ao.h"
 
 
-response_t *init_response_t(void) {
-	response_t *res = malloc(sizeof(response_t));
-	res->string = NULL;
-	res->hf = NULL;
-	return res;
-}
-
-
-
 void free_response_t(response_t *response) {
 	free_header_field_t(response->hf);
 	free(response->string);
@@ -18,44 +9,48 @@ void free_response_t(response_t *response) {
 
 
 
-void filter_response_string(ao_t *ao) {
+void filter_response_string(tasklet_t *tasklet) {
 	char *buff = malloc(sizeof(char) * 4096);
 	short stop_flag = 0;
 	int pos = 0;
 	while (stop_flag != 4) {
-		_recv(ao->sockfd, buff + pos, 1);
+		_recv(tasklet->sockfd, buff + pos, 1);
 		switch (buff[pos]) {
 			case '\r':
 			case '\n':
 				stop_flag++;
+				break;
 			default:
 				stop_flag = 0;
+				break;
 		}
 		pos++;
 	}
 	buff[pos] = '\0';
-	ao->response->string = _copy_str(buff, pos);
+	tasklet->response->string = copy_str(buff, pos);
 }
 
 
 
-void parse_response_string(ao_t *ao) {
-	memcpy(ao->response->status, ao->response->string + 9, 3);
-	ao->response->status[3] = '\0';
+void parse_response_string(tasklet_t *tasklet) {
+	memcpy(tasklet->response->status, tasklet->response->string + 9, 3);
+	tasklet->response->status[3] = '\0';
 
-	char *p, *q, *r;
-	p = strchr(ao->response->string, '\n');
-	p++;
+	char *name, *value, *stop;
+	header_field_t **ptr = &tasklet->response->hf;
+	name = strchr(tasklet->response->string, '\n');
+	name += 2;
 	while (1) {
-		q = strchr(p, ':');
-		if (q == NULL) break;
-		*q = '\0';
-		r = strchr(++q, '\r');
-		*r = '\0';
+		value = strchr(name, ':');
+		if (value == NULL) break;
+		*value = '\0';
+		value += 2;
+		stop = strchr(value, '\r');
+		*stop = '\0';
 
-		// name: value == p: q+1
-		add_header_field(ao->response->hf, p, ++q);
+		*ptr = gen_header_field(name, value);
+		ptr = &(*ptr)->next;
 
-		p = r + 2;
+		name = stop + 2;
 	}
 }

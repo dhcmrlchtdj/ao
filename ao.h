@@ -14,54 +14,41 @@
 ///////////////////
 
 typedef struct ao_t ao_t;
-typedef struct header_field_t header_field_t;
+typedef struct tasklet_t tasklet_t;
+typedef struct url_t url_t;
 typedef struct request_t request_t;
 typedef struct response_t response_t;
-typedef struct url_t url_t;
+typedef struct header_field_t header_field_t;
 
 ///////////////////
 
 #include "download.h"
-#include "http_conn.h"
 #include "http_header.h"
 #include "http_request.h"
 #include "http_response.h"
+#include "http_util.h"
 #include "option.h"
 #include "transport.h"
-#include "url.h"
 
 ///////////////////
 
-struct ao_t {
-	int sockfd;
-	unsigned long length;
-	char *filename;
-	FILE *file;
-	url_t *url;
-	request_t *request;
-	response_t *response;
-	tasklet_t *tasklet;
-};
-
-struct ao_tt {
-	unsigned long file_size;
-	char *file_name
-	FILE *fp;
-	url_t *url;
-	tasklet_t *tasklets;
-}
-
-struct tasklet {
+struct tasklet_t {
 	int sockfd;
 	unsigned long received;
 	unsigned long start;
 	unsigned long stop;
+	url_t *url;
 	request_t *request;
 	response_t *response;
-}
+};
 
-ao_t *init_ao_t(void);
-void free_ao_t(ao_t *ao);
+struct ao_t {
+	char *filename;
+	FILE *file;
+	unsigned long size;
+	tasklet_t tasklets[];
+};
 
+char *copy_str(char *src, size_t len);
 
 #endif

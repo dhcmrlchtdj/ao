@@ -31,39 +31,42 @@ ssize_t _recv(int sockfd, void *buf, size_t len) {
 
 
 
-void create_tcp_conn(ao_t *ao) {
+void create_tcp_conn(tasklet_t *tasklet) {
 	struct addrinfo hints, *res, *rp;
-	int status;
+	int status, sockfd;
 
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	status = getaddrinfo(ao->url->host, ao->url->port, &hints, &res);
+	status = getaddrinfo(tasklet->url->host, tasklet->url->port, &hints, &res);
 	if (status != 0) {
 		fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(status));
+		printf("%s, %s\n", tasklet->url->host, tasklet->url->port);
 		exit(EXIT_FAILURE); // cann't get host
 	}
 
 	for (rp = res; rp != NULL; rp = rp->ai_next) {
-		ao->sockfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-		if (ao->sockfd == -1) {
+		sockfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+		if (sockfd == -1) {
 			perror("socket error: ");
 			continue;
 		}
 
-		status = connect(ao->sockfd, rp->ai_addr, rp->ai_addrlen);
+		status = connect(sockfd, rp->ai_addr, rp->ai_addrlen);
 		if (status == 0) {
 			break; // connect succeed
 		} else {
 			perror("connect error: ");
-			close(ao->sockfd);
+			close(sockfd);
 		}
 	}
 
 	if (rp == NULL) {
 		fprintf(stderr, "fail to create tcp connection.\n");
 		exit(EXIT_FAILURE);
+	} else {
+		tasklet->sockfd = sockfd;
 	}
 
 	freeaddrinfo(res);
