@@ -4,8 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <stdarg.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/epoll.h>
 #include <errno.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -46,9 +48,13 @@ struct ao_t {
 	char *filename;
 	FILE *file;
 	unsigned long size;
-	tasklet_t tasklets[];
+	tasklet_t *tasklets[]; // array of pointer to tasklet_t
 };
 
+ao_t *init_ao_t(int num);
+//tasklet_t *init_tasklet_t(...); // start, stop
+tasklet_t *init_tasklet_t(unsigned long start, unsigned long stop);
+void free_tasklet_t(tasklet_t *tasklet);
 char *copy_str(char *src, size_t len);
 
 #endif

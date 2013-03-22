@@ -1,6 +1,14 @@
 #include "ao.h"
 
 
+response_t *init_response_t(void) {
+	response_t *response = malloc(sizeof(response_t));
+	response->hf = NULL;
+	return response;
+}
+
+
+
 void free_response_t(response_t *response) {
 	free_header_field_t(response->hf);
 	free(response->string);
@@ -28,6 +36,12 @@ void filter_response_string(tasklet_t *tasklet) {
 	}
 	buff[pos] = '\0';
 	tasklet->response->string = copy_str(buff, pos);
+	free(buff);
+
+	/* DEBUG */
+	printf("===response start===\n");
+	printf("%s\n", tasklet->response->string);
+	printf("===response end===\n");
 }
 
 

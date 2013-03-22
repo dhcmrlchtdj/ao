@@ -83,3 +83,22 @@ void send_all(int sockfd, void *data, size_t len) {
 		offset += sent;
 	}
 }
+
+
+
+
+void nonblocking(int fd) {
+	int flags, status;
+	flags = fcntl(fd, F_GETFL, 0);
+	if (flags == -1) {
+		perror("nonblocking get error: ");
+		exit(EXIT_FAILURE);
+	}
+	status = fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+	if (status == -1) {
+		perror("nonblocking set error: ");
+		exit(EXIT_FAILURE);
+	}
+}
+
+

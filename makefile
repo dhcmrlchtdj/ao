@@ -1,4 +1,4 @@
-CC = clang
+CC = clang -O0 -g
 
 .PHONY: clean
 

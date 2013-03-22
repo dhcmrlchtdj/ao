@@ -1,34 +1,32 @@
 #include "ao.h"
 
 
-void parse_url(tasklet_t *tasklet, char *str) {
-	char host[50];
-	char port[10] = "80";
-	char path[1024] = "/";
+url_t *init_url_t(void) {
+	url_t *url = malloc(sizeof(url_t));
+	return url;
+}
 
+
+
+void parse_url(tasklet_t *tasklet, char *str) {
 	char *with_port = "http://%[^:/]:%[^/]%[^ ]";
 	char *no_port = "http://%[^/]%[^ ]";
 
-	int cnt = sscanf(str, with_port, host, port, path);
+	int cnt = sscanf(str, with_port, tasklet->url->host,
+			tasklet->url->port, tasklet->url->path);
 	if (cnt != 3) { // url without port
-		cnt = sscanf(str, no_port, host, path);
+		cnt = sscanf(str, no_port, tasklet->url->host, tasklet->url->path);
+		memcpy(tasklet->url->port, "80", 3);
 		if (cnt != 2) {
 			fprintf(stderr, "Invalid url: %s\n", str);
 			exit(EXIT_FAILURE);
 		}
 	}
-
-	tasklet->url->host = copy_str(host, strlen(host));
-	tasklet->url->port = copy_str(port, strlen(port));
-	tasklet->url->path = copy_str(path, strlen(path));
 }
 
 
 
 void free_url_t(url_t *url) {
-	free(url->host);
-	free(url->port);
-	free(url->path);
 	free(url);
 }
 
@@ -52,18 +50,13 @@ int conn_url(tasklet_t *tasklet, char *url) {
 	short redirection = 5;
 	
 	while (redirection) {
-		tasklet->url = malloc(sizeof(url_t));
 		parse_url(tasklet, url);
 
 		create_tcp_conn(tasklet);
 
-		tasklet->request = malloc(sizeof(request_t));
-		tasklet->request->hf = NULL;
 		gen_basic_request_header(tasklet); // such as Host, Connection ...
 		send_request(tasklet);
 
-		tasklet->response = malloc(sizeof(response_t));
-		tasklet->response->hf = NULL;
 		filter_response_string(tasklet);
 		parse_response_string(tasklet);
 
