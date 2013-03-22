@@ -4,7 +4,7 @@ struct header_field_t {
 	struct header_field_t *next;
 };
 
-header_field_t *gen_header_field(char *name, char *value);
+header_field_t *init_header_field_t(char *name, char *value);
 void free_header_field_t(header_field_t *hf);
 
 

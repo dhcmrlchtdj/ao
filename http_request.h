@@ -1,5 +1,5 @@
 struct request_t {
-	char *request;
+	//char *request;
 	header_field_t *hf;
 };
 

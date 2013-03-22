@@ -1,7 +1,7 @@
 #include "ao.h"
 
 
-header_field_t *gen_header_field(char *name, char *value) {
+header_field_t *init_header_field_t(char *name, char *value) {
 	header_field_t *hf = malloc(sizeof(header_field_t));
 	hf->name = copy_str(name, strlen(name));
 	hf->value = copy_str(value, strlen(value));
@@ -38,11 +38,11 @@ char *get_header_field(header_field_t *hf, char *name) {
 
 void add_header_field(header_field_t *hf, char *name, char *value) {
 	if (hf == NULL) {
-		hf = gen_header_field(name, value);
+		hf = init_header_field_t(name, value);
 	} else {
 		while (hf->next)
 			hf = hf->next;
-		hf->next = gen_header_field(name, value);
+		hf->next = init_header_field_t(name, value);
 	}
 }
 
@@ -55,7 +55,7 @@ void set_header_field(header_field_t *hf, char *name, char *value) {
 			hf->value = copy_str(value, strlen(value));
 			break;
 		} else if (hf->next == NULL) {
-			hf->next = gen_header_field(name, value);
+			hf->next = init_header_field_t(name, value);
 			break;
 		}
 	}
@@ -65,6 +65,7 @@ void set_header_field(header_field_t *hf, char *name, char *value) {
 
 char *header_to_string(header_field_t *hf) {
 	char *hf_string = malloc(sizeof(char) * 4096);
+	memset(hf_string, 0, sizeof(char) * 4096);
 	while (hf) {
 		strcat(hf_string, hf->name);
 		strcat(hf_string, ": ");
@@ -76,20 +77,6 @@ char *header_to_string(header_field_t *hf) {
 }
 
 header_field_t *string_to_header(char *str);
-
-
-
-/*int get_length(ao_t *ao) {*/
-	/*char *p, *q;*/
-	/*p = get_header_field(ao->response->hf, "Content-Range");*/
-	/*if (p && (q = strchr(p, '/'))) {*/
-		/*ao->length = strtoul(++q, NULL, 0);*/
-		/*return 0;*/
-	/*} else {*/
-		/*ao->length = 0;*/
-		/*return 1;*/
-	/*}*/
-/*}*/
 
 
 

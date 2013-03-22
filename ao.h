@@ -44,17 +44,25 @@ struct tasklet_t {
 	response_t *response;
 };
 
+tasklet_t *init_tasklet_t(unsigned long start, unsigned long stop);
+void clear_tasklet_t(tasklet_t *tasklet);
+void free_tasklet_t(tasklet_t *tasklet);
+
+
 struct ao_t {
-	char *filename;
+	char url[1024];
+	char filename[1024];
+	unsigned long filesize;
 	FILE *file;
-	unsigned long size;
+	int task_count;
 	tasklet_t *tasklets[]; // array of pointer to tasklet_t
 };
 
 ao_t *init_ao_t(int num);
-//tasklet_t *init_tasklet_t(...); // start, stop
-tasklet_t *init_tasklet_t(unsigned long start, unsigned long stop);
-void free_tasklet_t(tasklet_t *tasklet);
+void free_ao_t(ao_t *ao);
+
+
+
 char *copy_str(char *src, size_t len);
 
 #endif

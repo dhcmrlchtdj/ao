@@ -8,7 +8,7 @@ ssize_t _send(int sockfd, void *buf, size_t len) {
 		if (s != -1) {
 			return s;
 		} else if (errno != EAGAIN) {
-			perror("send error: ");
+			perror("send error");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -23,7 +23,7 @@ ssize_t _recv(int sockfd, void *buf, size_t len) {
 		if (s != -1) {
 			return s;
 		} else if (errno != EAGAIN) {
-			perror("recv error: ");
+			perror("recv error");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -49,7 +49,7 @@ void create_tcp_conn(tasklet_t *tasklet) {
 	for (rp = res; rp != NULL; rp = rp->ai_next) {
 		sockfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
 		if (sockfd == -1) {
-			perror("socket error: ");
+			perror("socket error");
 			continue;
 		}
 
@@ -57,7 +57,7 @@ void create_tcp_conn(tasklet_t *tasklet) {
 		if (status == 0) {
 			break; // connect succeed
 		} else {
-			perror("connect error: ");
+			perror("connect error");
 			close(sockfd);
 		}
 	}
@@ -91,14 +91,46 @@ void nonblocking(int fd) {
 	int flags, status;
 	flags = fcntl(fd, F_GETFL, 0);
 	if (flags == -1) {
-		perror("nonblocking get error: ");
+		perror("nonblocking get error");
 		exit(EXIT_FAILURE);
 	}
 	status = fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 	if (status == -1) {
-		perror("nonblocking set error: ");
+		perror("nonblocking set error");
 		exit(EXIT_FAILURE);
 	}
 }
 
 
+
+void save(ao_t *ao, int multi) {
+	char buff[8192];
+	int r;
+	printf("start download\n");
+	ao->file = fopen(ao->filename, "w+b");
+	ao->tasklets[0] = init_tasklet_t(0, ao->filesize);
+	ao->task_count = 1;
+
+	if (multi) {
+		printf("use epoll, not this version\n");
+		conn_url(ao->tasklets[0], ao->url);
+		while (1) {
+			r = _recv(ao->tasklets[0]->sockfd, buff, 8192);
+			if (r == 0) break;
+			fwrite(buff, sizeof(char), r, ao->file);
+			printf("%d\n", r);
+		}
+	} else {
+		printf("not use epoll\n");
+		conn_url(ao->tasklets[0], ao->url);
+		while (1) {
+			r = _recv(ao->tasklets[0]->sockfd, buff, 8192);
+			if (r == 0) break;
+			fwrite(buff, sizeof(char), r, ao->file);
+			printf("%d\n", r);
+		}
+	}
+
+	fclose(ao->file);
+	printf("download finish\n");
+}

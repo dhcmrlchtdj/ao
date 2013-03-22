@@ -37,11 +37,6 @@ void filter_response_string(tasklet_t *tasklet) {
 	buff[pos] = '\0';
 	tasklet->response->string = copy_str(buff, pos);
 	free(buff);
-
-	/* DEBUG */
-	printf("===response start===\n");
-	printf("%s\n", tasklet->response->string);
-	printf("===response end===\n");
 }
 
 
@@ -62,7 +57,7 @@ void parse_response_string(tasklet_t *tasklet) {
 		stop = strchr(value, '\r');
 		*stop = '\0';
 
-		*ptr = gen_header_field(name, value);
+		*ptr = init_header_field_t(name, value);
 		ptr = &(*ptr)->next;
 
 		name = stop + 2;

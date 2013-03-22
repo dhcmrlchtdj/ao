@@ -22,19 +22,19 @@ void gen_basic_request_header(tasklet_t *tasklet) {
 	char *buff = malloc(sizeof(char) * 1024);
 
 	sprintf(buff, "%s:%s", tasklet->url->host, tasklet->url->port);
-	tasklet->request->hf = gen_header_field("Host", buff);
+	tasklet->request->hf = init_header_field_t("Host", buff);
 
 	sprintf(buff, "bytes=%lu-%lu", tasklet->start, tasklet->stop);
-	tasklet->request->hf->next = gen_header_field("Range", buff);
+	tasklet->request->hf->next = init_header_field_t("Range", buff);
 
 	ptr = tasklet->request->hf->next;
-	ptr->next = gen_header_field("Connection", "close");
+	ptr->next = init_header_field_t("Connection", "close");
 
 	ptr = ptr->next;
-	ptr->next = gen_header_field("Accept-Encoding", "identity");
+	ptr->next = init_header_field_t("Accept-Encoding", "identity");
 
 	ptr = ptr->next;
-	ptr->next = gen_header_field("User-Agent", "ao/pre-alpha");
+	ptr->next = init_header_field_t("User-Agent", "ao/pre-alpha");
 
 	free(buff);
 }
@@ -47,12 +47,6 @@ void send_request(tasklet_t *tasklet) {
 	char *buff = malloc(sizeof(char) * 4096);
 	sprintf(buff, "GET %s HTTP/1.0\r\n%s\r\n", tasklet->url->path, req);
 
-	/* DEBUG */
-	printf("===request start===\n");
-	printf("%s\n", buff);
-	printf("===request end===\n");
-
-	
 	send_all(tasklet->sockfd, buff, strlen(buff));
 	free(req);
 	free(buff);

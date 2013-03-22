@@ -32,25 +32,14 @@ void free_url_t(url_t *url) {
 
 
 
-
-char *get_filename(char *str) {
-	char *p = strrchr(str, '/');
-	if (p == NULL || *++p == '\0')
-		return "default";
-
-	// FIXME
-	char *q = strchr(p, '?');
-	return q ? copy_str(p, q - p) : copy_str(p, strlen(p));
-}
-
-
-
-int conn_url(tasklet_t *tasklet, char *url) {
+void conn_url(tasklet_t *tasklet, char *str) {
 	int status;
-	short redirection = 5;
+	short redirection = 0;
+	char *url = copy_str(str, strlen(str));
 	
-	while (redirection) {
+	while (1) {
 		parse_url(tasklet, url);
+		free(url);
 
 		create_tcp_conn(tasklet);
 
@@ -62,25 +51,52 @@ int conn_url(tasklet_t *tasklet, char *url) {
 
 		status = tasklet->response->status[0];
 		if (status == '2') {
-			return 0;
-		} else if (status == '3' && redirection > 1) {
-			// FIXME: bug?
-			url = get_header_field(tasklet->response->hf, "Location");
-			if (url == NULL)
-				return -1;
-
-			redirection--;
-
-			free_url_t(tasklet->url);
-			free_request_t(tasklet->request);
-			free_response_t(tasklet->response);
-		} else {
-			free_url_t(tasklet->url);
-			free_request_t(tasklet->request);
-			free_response_t(tasklet->response);
 			break;
+		} else if (status != '3') {
+			fprintf(stderr, "conn url error. status is %c\n", status);
+			exit(EXIT_FAILURE);
+		} else if (redirection > MAX_REDIRECTION) {
+			fprintf(stderr, "[ao] redirection too many times\n");
+			exit(EXIT_FAILURE);
+		} else {
+			str = get_header_field(tasklet->response->hf, "Location");
+			if (str == NULL) {
+				fprintf(stderr, "[ao] redirection error. "
+						"not found Location\n");
+				exit(EXIT_FAILURE);
+			} else {
+				redirection++;
+				url = copy_str(str, strlen(str));
+				clear_tasklet_t(tasklet);
+				fprintf(stdout, "[ao] redirect to '%s', %d\n",
+						url, redirection);
+			}
 		}
 	}
-	fprintf(stderr, "conn't connect to url: %s\n", url);
-	return -1;
+}
+
+
+
+void get_filename_by_path(ao_t *ao) {
+	char *start = strrchr(ao->tasklets[0]->url->path, '/');
+	if (start == NULL || *++start == '\0') {
+		memcpy(ao->filename, "default", 8);
+	} else {
+		// FIXME ?
+		char *stop = strchr(start, '?');
+		if (stop) {
+			memcpy(ao->filename, start, stop - start);
+			ao->filename[stop - start] = '\0';
+		} else {
+			memcpy(ao->filename, start, strlen(start));
+			ao->filename[strlen(start)] = '\0';
+		}
+	}
+}
+
+
+
+void get_filesize_by_range(ao_t *ao, char *str) {
+	char *pos = strchr(str, '/');
+	ao->filesize = strtoul(++pos, NULL, 0);
 }
