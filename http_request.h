@@ -1,11 +1,11 @@
 struct Request {
 	//char *request;
-	Header *hf;
+	HeaderField *hf;
 };
 
-Request *init_request(void);
+Request *init_Request(void);
 
-void free_request(Request *request);
+void free_Request(Request *request);
 
 void gen_basic_request_header(Task *task);
 

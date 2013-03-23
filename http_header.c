@@ -1,18 +1,18 @@
 #include "ao.h"
 
 
-Header *init_header(char *name, char *value) {
-	Header *hf = malloc(sizeof(Header));
-	hf->name = copy_str(name, strlen(name));
-	hf->value = copy_str(value, strlen(value));
+HeaderField *init_HeaderField(char *name, char *value) {
+	HeaderField *hf = malloc(sizeof(HeaderField));
+	hf->name = dynamic_copy(name, strlen(name));
+	hf->value = dynamic_copy(value, strlen(value));
 	hf->next = NULL;
 	return hf;
 }
 
 
 
-void free_header(Header *hf) {
-	Header *ptr = hf;
+void free_HeaderField(HeaderField *hf) {
+	HeaderField *ptr = hf;
 	while (ptr) {
 		hf = ptr->next;
 		free(ptr->name);
@@ -24,7 +24,7 @@ void free_header(Header *hf) {
 
 
 
-char *get_header(Header *hf, char *name) {
+char *get_header_field(HeaderField *hf, char *name) {
 	while (hf) {
 		if (strcasecmp(hf->name, name) == 0)
 			return hf->value;
@@ -35,7 +35,7 @@ char *get_header(Header *hf, char *name) {
 }
 
 
-
+/*
 void add_header(Header *hf, char *name, char *value) {
 	if (hf == NULL) {
 		hf = init_header(name, value);
@@ -60,12 +60,12 @@ void set_header(Header *hf, char *name, char *value) {
 		}
 	}
 }
+*/
 
 
-
-char *header_to_string(Header *hf) {
-	char *hf_string = malloc(sizeof(char) * 4096);
-	memset(hf_string, 0, sizeof(char) * 4096);
+char *header_to_string(HeaderField *hf) {
+	char *hf_string = malloc(sizeof(char) * LONG_STR);
+	memset(hf_string, 0, sizeof(char) * LONG_STR);
 	while (hf) {
 		strcat(hf_string, hf->name);
 		strcat(hf_string, ": ");
@@ -76,7 +76,7 @@ char *header_to_string(Header *hf) {
 	return hf_string;
 }
 
-Header *string_to_header(char *str);
+/*Header *string_to_header(char *str);*/
 
 
 
@@ -95,7 +95,7 @@ Header *string_to_header(char *str);
 
 
 
-void _print_header(Header *hf) {
+void _print_header(HeaderField *hf) {
 	while (hf) {
 		printf("%s: %s\n", hf->name, hf->value);
 		hf = hf->next;

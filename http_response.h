@@ -1,11 +1,11 @@
 struct Response {
 	char status[4];
-	char *string; // caution
-	Header *hf;
+	char string[LONG_STR]; // caution
+	HeaderField *hf;
 };
 
-Response *init_response(void);
-void free_response(Response *response);
+Response *init_Response(void);
+void free_Response(Response *response);
 
 void filter_response_string(Task *task);
 void parse_response_string(Task *task);

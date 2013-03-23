@@ -16,12 +16,16 @@
 
 ///////////////////
 
+#define SHORT_STR 1024
+#define LONG_STR 4096
+#define MAX_REDIRECTION 5
+
 typedef struct AO AO;
 typedef struct Task Task;
 typedef struct Url Url;
 typedef struct Request Request;
 typedef struct Response Response;
-typedef struct Header Header;
+typedef struct HeaderField HeaderField;
 
 ///////////////////
 
@@ -36,8 +40,9 @@ typedef struct Header Header;
 ///////////////////
 
 struct Task {
+	int taskid;
 	int sockfd;
-	int range_type;
+	int range_type; // 0 1 2
 	unsigned long start;
 	unsigned long stop;
 	Url *url;
@@ -45,28 +50,29 @@ struct Task {
 	Response *response;
 };
 
-int new_task(AO *ao, int type, unsigned long start, unsigned long stop);
-Task *init_task(int type, unsigned long start, unsigned long stop);
-void clear_task(Task *task);
-void free_task(Task *task);
-
+Task *init_Task(int range_type, unsigned long start, unsigned long stop);
+void clear_Task(Task *task);
+void free_Task(Task *task);
+int new_Task(AO *ao, int range_type, unsigned long start, unsigned long stop);
+void del_Task(AO *ao, Task *task);
 
 struct AO {
-	bool use_task;
-	int max_task;
-	int used_task;
-	char url[1024];
-	char filename[1024];
+	char url[SHORT_STR];
+	char filename[SHORT_STR];
 	unsigned long filesize;
+	bool support_range;
 	FILE *file;
+	int max_tasks;
 	Task *tasks[]; // array of pointer to struct task
 };
 
-AO *init_ao(int num);
-void free_ao(AO *ao);
+AO *init_AO(int num);
+void free_AO(AO *ao);
 
+//////////
 
-
-char *copy_str(char *src, size_t len);
+/* src_size not contain '\0' */
+char *dynamic_copy(char *src, size_t src_size);
+void static_copy(char *dest, size_t dest_size, char *src, size_t src_size);
 
 #endif

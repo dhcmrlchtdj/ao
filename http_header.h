@@ -1,19 +1,19 @@
-struct Header {
+struct HeaderField {
 	char *name;
 	char *value;
-	struct Header *next;
+	struct HeaderField *next;
 };
 
-Header *init_header(char *name, char *value);
-void free_header(Header *hf);
+HeaderField *init_HeaderField(char *name, char *value);
+void free_HeaderField(HeaderField *hf);
 
 
-char *get_header(Header *hf, char *name);
-void set_header(Header *hf, char *name, char *value);
+char *get_header_field(HeaderField *hf, char *name);
+//void set_header_field(Header *hf, char *name, char *value);
 
 
-char *header_to_string(Header *hf);
-Header *string_to_header(char *str);
+char *header_to_string(HeaderField *hf);
+//Header *string_to_header(char *str);
 
 
-void _print_header_field(Header *hf); // used to debug
+void _print_header_field(HeaderField *hf); // used to debug

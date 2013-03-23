@@ -1,7 +1,7 @@
 #include "ao.h"
 
 
-Response *init_response(void) {
+Response *init_Response(void) {
 	Response *response = malloc(sizeof(Response));
 	response->hf = NULL;
 	return response;
@@ -9,16 +9,15 @@ Response *init_response(void) {
 
 
 
-void free_response(Response *response) {
-	free_header(response->hf);
-	free(response->string);
+void free_Response(Response *response) {
+	free_HeaderField(response->hf);
 	free(response);
 }
 
 
 
 void filter_response_string(Task *task) {
-	char *buff = malloc(sizeof(char) * 4096);
+	char *buff = malloc(sizeof(char) * LONG_STR);
 	short stop_flag = 0;
 	int pos = 0;
 	while (stop_flag != 4) {
@@ -35,18 +34,18 @@ void filter_response_string(Task *task) {
 		pos++;
 	}
 	buff[pos] = '\0';
-	task->response->string = copy_str(buff, pos);
+	static_copy(task->response->string, LONG_STR, buff, pos);
 	free(buff);
 }
 
 
 
 void parse_response_string(Task *task) {
-	memcpy(task->response->status, task->response->string + 9, 3);
-	task->response->status[3] = '\0';
+	static_copy(task->response->status, LONG_STR,
+			task->response->string + 9, 3);
 
 	char *name, *value, *stop;
-	Header **ptr = &task->response->hf;
+	HeaderField **ptr = &task->response->hf;
 	name = strchr(task->response->string, '\n');
 	name += 2;
 	while (1) {
@@ -57,7 +56,7 @@ void parse_response_string(Task *task) {
 		stop = strchr(value, '\r');
 		*stop = '\0';
 
-		*ptr = init_header(name, value);
+		*ptr = init_HeaderField(name, value);
 		ptr = &(*ptr)->next;
 
 		name = stop + 2;

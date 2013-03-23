@@ -102,7 +102,6 @@ void nonblocking(int fd) {
 }
 
 
-
 void save(AO *ao) {
 	char buff[8192];
 	int taskid;
@@ -110,21 +109,20 @@ void save(AO *ao) {
 	printf("[ao] start download\n");
 	ao->file = fopen(ao->filename, "w+b");
 
-	if (ao->used_task) {
-		printf("use epoll, not this version\n");
-		exit(EXIT_FAILURE);
-	} else {
-		printf("not use epoll\n");
-		taskid = new_task(ao, 0, 0, 0);
-		conn_url(ao->tasks[taskid], ao->url);
-		while (1) {
-			r = _recv(ao->tasks[taskid]->sockfd, buff, 8192);
-			if (r == 0) break;
-			fwrite(buff, sizeof(char), r, ao->file);
-			printf("%d\n", r);
-		}
+	taskid = new_Task(ao, 0, 0, 0);
+	conn_url(ao->tasks[taskid], ao->url);
+	while (1) {
+		r = _recv(ao->tasks[taskid]->sockfd, buff, 8192);
+		if (r == 0) break;
+		fwrite(buff, sizeof(char), r, ao->file);
+		printf("%ld", r);
 	}
 
 	fclose(ao->file);
-	printf("download finish\n");
+	printf("\ndownload finish\n");
+}
+
+
+void save_epoll(AO *ao) {
+	save(ao);
 }

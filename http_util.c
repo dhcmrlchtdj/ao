@@ -1,9 +1,15 @@
 #include "ao.h"
 
 
-Url *init_url(void) {
+Url *init_Url(void) {
 	Url *url = malloc(sizeof(Url));
 	return url;
+}
+
+
+
+void free_Url(Url *url) {
+	free(url);
 }
 
 
@@ -13,10 +19,10 @@ void parse_url(Task *task, char *str) {
 	char *no_port = "http://%[^/]%[^ ]";
 
 	int cnt = sscanf(str, with_port, task->url->host,
-		   	task->url->port, task->url->path);
+			task->url->port, task->url->path);
 	if (cnt != 3) { // url without port
 		cnt = sscanf(str, no_port, task->url->host, task->url->path);
-		memcpy(task->url->port, "80", 3);
+		static_copy(task->url->port, SHORT_STR,  "80", 2);
 		if (cnt != 2) {
 			fprintf(stderr, "Invalid url: %s\n", str);
 			exit(EXIT_FAILURE);
@@ -25,17 +31,13 @@ void parse_url(Task *task, char *str) {
 }
 
 
-
-void free_url(Url *url) {
-	free(url);
-}
-
+//////////
 
 
 void conn_url(Task *task, char *str) {
 	int status;
 	short redirection = 0;
-	char *url = copy_str(str, strlen(str));
+	char *url = dynamic_copy(str, strlen(str));
 	
 	while (1) {
 		parse_url(task, url);
@@ -59,15 +61,15 @@ void conn_url(Task *task, char *str) {
 			fprintf(stderr, "[ao] redirection too many times\n");
 			exit(EXIT_FAILURE);
 		} else {
-			str = get_header(task->response->hf, "Location");
+			str = get_header_field(task->response->hf, "Location");
 			if (str == NULL) {
 				fprintf(stderr, "[ao] redirection error. "
 						"not found Location\n");
 				exit(EXIT_FAILURE);
 			} else {
 				redirection++;
-				url = copy_str(str, strlen(str));
-				clear_task(task);
+				url = dynamic_copy(str, strlen(str));
+				clear_Task(task);
 				fprintf(stdout, "[ao] redirect to '%s', %d\n",
 						url, redirection);
 			}
@@ -82,16 +84,14 @@ void get_filename_by_path(AO *ao, char *path) {
 	start = strrchr(path, '/');
 	if (start == NULL || *++start == '\0') {
 		// use "default" if not filename
-		memcpy(ao->filename, "default", 8);
+		static_copy(ao->filename, SHORT_STR, "default", 7);
 	} else {
 		// FIXME ?
 		stop = strchr(start, '?');
 		if (stop) {
-			memcpy(ao->filename, start, stop - start);
-			ao->filename[stop - start] = '\0';
+			static_copy(ao->filename, SHORT_STR, start, stop - start);
 		} else {
-			memcpy(ao->filename, start, strlen(start));
-			ao->filename[strlen(start)] = '\0';
+			static_copy(ao->filename, SHORT_STR, start, strlen(start));
 		}
 	}
 }

@@ -3,12 +3,12 @@
 struct Url {
 	char host[50];
 	char port[10];
-	char path[1024];
+	char path[SHORT_STR];
 };
 
-Url *init_url(void);
+Url *init_Url(void);
+void free_Url(Url *url);
 void parse_url(Task *task, char *str);
-void free_url(Url *url);
 
 void conn_url(Task *task, char *url);
 
