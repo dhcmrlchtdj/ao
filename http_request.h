@@ -1,12 +1,12 @@
-struct request_t {
+struct Request {
 	//char *request;
-	header_field_t *hf;
+	Header *hf;
 };
 
-request_t *init_request_t(void);
+Request *init_request(void);
 
-void free_request_t(request_t *request);
+void free_request(Request *request);
 
-void gen_basic_request_header(tasklet_t *tasklet);
+void gen_basic_request_header(Task *task);
 
-void send_request(tasklet_t *tasklet);
+void send_request(Task *task);

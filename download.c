@@ -1,48 +1,45 @@
 #include "ao.h"
 
-#define DEFAULT_TASKLET 6
 
-
-void direct_download(char *url) {
-	int status, multi;
+void start_download(AO *ao) {
+	int status, taskid;
 	char *ptr;
 
-	// initial
-	ao_t *ao = init_ao_t(DEFAULT_TASKLET);
-	memcpy(ao->url, url, strlen(url) + 1);
-	ao->tasklets[0] = init_tasklet_t(0, 0);
+	// initial task
+	taskid = new_task(ao, 2, 0, 0);
 
 	// connect
-	conn_url(ao->tasklets[0], url);
+	conn_url(ao->tasks[taskid], ao->url);
+	printf("[ao] connect to %s\n", ao->url);
 
 	// get filename
-	get_filename_by_path(ao);
+	get_filename_by_path(ao, ao->tasks[taskid]->url->path);
 	printf("[ao] filename: %s\n", ao->filename);
 
 	// whether support range
-	ptr = get_header_field(ao->tasklets[0]->response->hf, "Content-Range");
+	ptr = get_header(ao->tasks[taskid]->response->hf, "Content-Range");
 	if (ptr == NULL) {
-		fprintf(stdout, "[ao] not support Range header.\n");
+		ao->use_task = false;
+		printf("[ao] ! not support 'Range'.\n");
 		// get filesize
-		ptr = get_header_field(ao->tasklets[0]->response->hf, "Content-Length");
+		ptr = get_header(ao->tasks[taskid]->response->hf, "Content-Length");
 		if (ptr == NULL) {
-			fprintf(stderr, "[ao] cann't get filesize\n");
+			printf("[ao] ! 'Content-Length' not found.\n");
 		} else {
 			ao->filesize = strtoul(ptr, NULL, 0);
 			printf("[ao] filesize: %lu\n", ao->filesize);
 		}
-		multi = 0;
 	} else {
+		ao->use_task = true;
 		get_filesize_by_range(ao, ptr);
 		printf("[ao] filesize: %lu\n", ao->filesize);
-		multi = 1;
 	}
 
-	close(ao->tasklets[0]->sockfd);
-	free_tasklet_t(ao->tasklets[0]);
+	close(ao->tasks[taskid]->sockfd);
+	free_task(ao->tasks[taskid]);
 
 	// download
-	save(ao, multi);
+	save(ao);
 
-	free_ao_t(ao);
+	free_ao(ao);
 }

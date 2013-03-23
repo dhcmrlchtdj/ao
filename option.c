@@ -2,9 +2,10 @@
 
 
 int main(int argc, char *argv[]) {
-	opterr = 0; // do not print error message
+	int max_task = 5;
 
-	char *opt_string = "f:F:p::h";
+	opterr = 0; // do not print error message
+	char *opt_string = "f:F:p::n::o::h";
 	char opt_char = getopt(argc, argv, opt_string);
 
 	switch (opt_char) {
@@ -25,13 +26,15 @@ int main(int argc, char *argv[]) {
 			print_usage();
 			break;
 		case -1:
-			if (argc == 2) {
-				direct_download(argv[1]);
-			} else {
+			if (argc != 2) {
 				print_usage();
+				return 0;
 			}
-			break;
 	}
+
+	AO *ao = init_ao(max_task);
+	memcpy(ao->url, argv[1], strlen(argv[1]) + 1);
+	start_download(ao);
 
 	return 0;
 }

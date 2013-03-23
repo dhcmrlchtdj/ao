@@ -1,55 +1,77 @@
 #include "ao.h"
 
 
-ao_t *init_ao_t(int num) {
-	ao_t *ao = malloc(sizeof(ao_t) + num * sizeof(tasklet_t *));
-	ao->task_count = num;
+AO *init_ao(int num) {
+	AO *ao = malloc(sizeof(AO) + num * sizeof(Task *));
 	ao->filesize = 0;
 	ao->filename[0] = '\0';
 	ao->url[0] = '\0';
+	ao->use_task = true;
+	ao->max_task = num - 1; // start with 0
+	ao->used_task = 0;
 	for (int i = 0; i < num; i++)
-		ao->tasklets[i] = NULL;
+		ao->tasks[i] = NULL;
 	return ao;
 }
 
 
-void free_ao_t(ao_t *ao) {
-	for (int i = 0; i < ao->task_count; i++)
-		if (ao->tasklets[i])
-			free_tasklet_t(ao->tasklets[i]);
+void free_ao(AO *ao) {
+	int i;
+	for (i = 0; i <= ao->used_task; i++)
+		if (ao->tasks[i])
+			free_task(ao->tasks[i]);
 	free(ao);
 }
 
 
 
-tasklet_t *init_tasklet_t(unsigned long start, unsigned long stop) {
-	tasklet_t *tasklet = malloc(sizeof(tasklet_t));
-	tasklet->url = init_url_t();
-	tasklet->request = init_request_t();
-	tasklet->response = init_response_t();
-	tasklet->start = start;
-	tasklet->stop = stop;
-	return tasklet;
+int new_task(AO *ao, int type, unsigned long start, unsigned long stop) {
+	int i = 0;
+	if (ao->used_task == ao->max_task) {
+		fprintf(stderr, "reach the limit\n");
+		return -1;
+	} else {
+		for (i = 0; i<= ao->max_task; i++) {
+			if (ao->tasks[i] == NULL)
+				break;
+		}
+		ao->used_task++;
+		ao->tasks[i] = init_task(type, start, stop);
+		return i;
+	}
 }
 
 
 
-void clear_tasklet_t(tasklet_t *tasklet) {
-	free_url_t(tasklet->url);
-	free_request_t(tasklet->request);
-	free_response_t(tasklet->response);
-	tasklet->url = init_url_t();
-	tasklet->request = init_request_t();
-	tasklet->response = init_response_t();
+Task *init_task(int type, unsigned long start, unsigned long stop) {
+	Task *task = malloc(sizeof(Task));
+	task->url = init_url();
+	task->request = init_request();
+	task->response = init_response();
+	task->range_type = type;
+	task->start = start;
+	task->stop = stop;
+	return task;
 }
 
 
 
-void free_tasklet_t(tasklet_t *tasklet) {
-	free_url_t(tasklet->url);
-	free_request_t(tasklet->request);
-	free_response_t(tasklet->response);
-	free(tasklet);
+void clear_task(Task *task) {
+	free_url(task->url);
+	free_request(task->request);
+	free_response(task->response);
+	task->url = init_url();
+	task->request = init_request();
+	task->response = init_response();
+}
+
+
+
+void free_task(Task *task) {
+	free_url(task->url);
+	free_request(task->request);
+	free_response(task->response);
+	free(task);
 }
 
 

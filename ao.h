@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <stdarg.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -15,12 +16,12 @@
 
 ///////////////////
 
-typedef struct ao_t ao_t;
-typedef struct tasklet_t tasklet_t;
-typedef struct url_t url_t;
-typedef struct request_t request_t;
-typedef struct response_t response_t;
-typedef struct header_field_t header_field_t;
+typedef struct AO AO;
+typedef struct Task Task;
+typedef struct Url Url;
+typedef struct Request Request;
+typedef struct Response Response;
+typedef struct Header Header;
 
 ///////////////////
 
@@ -34,32 +35,35 @@ typedef struct header_field_t header_field_t;
 
 ///////////////////
 
-struct tasklet_t {
+struct Task {
 	int sockfd;
-	unsigned long received;
+	int range_type;
 	unsigned long start;
 	unsigned long stop;
-	url_t *url;
-	request_t *request;
-	response_t *response;
+	Url *url;
+	Request *request;
+	Response *response;
 };
 
-tasklet_t *init_tasklet_t(unsigned long start, unsigned long stop);
-void clear_tasklet_t(tasklet_t *tasklet);
-void free_tasklet_t(tasklet_t *tasklet);
+int new_task(AO *ao, int type, unsigned long start, unsigned long stop);
+Task *init_task(int type, unsigned long start, unsigned long stop);
+void clear_task(Task *task);
+void free_task(Task *task);
 
 
-struct ao_t {
+struct AO {
+	bool use_task;
+	int max_task;
+	int used_task;
 	char url[1024];
 	char filename[1024];
 	unsigned long filesize;
 	FILE *file;
-	int task_count;
-	tasklet_t *tasklets[]; // array of pointer to tasklet_t
+	Task *tasks[]; // array of pointer to struct task
 };
 
-ao_t *init_ao_t(int num);
-void free_ao_t(ao_t *ao);
+AO *init_ao(int num);
+void free_ao(AO *ao);
 
 
 

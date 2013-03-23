@@ -31,7 +31,7 @@ ssize_t _recv(int sockfd, void *buf, size_t len) {
 
 
 
-void create_tcp_conn(tasklet_t *tasklet) {
+void create_tcp_conn(Task *task) {
 	struct addrinfo hints, *res, *rp;
 	int status, sockfd;
 
@@ -39,10 +39,10 @@ void create_tcp_conn(tasklet_t *tasklet) {
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	status = getaddrinfo(tasklet->url->host, tasklet->url->port, &hints, &res);
+	status = getaddrinfo(task->url->host, task->url->port, &hints, &res);
 	if (status != 0) {
 		fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(status));
-		printf("%s, %s\n", tasklet->url->host, tasklet->url->port);
+		printf("%s, %s\n", task->url->host, task->url->port);
 		exit(EXIT_FAILURE); // cann't get host
 	}
 
@@ -66,7 +66,7 @@ void create_tcp_conn(tasklet_t *tasklet) {
 		fprintf(stderr, "fail to create tcp connection.\n");
 		exit(EXIT_FAILURE);
 	} else {
-		tasklet->sockfd = sockfd;
+		task->sockfd = sockfd;
 	}
 
 	freeaddrinfo(res);
@@ -103,28 +103,22 @@ void nonblocking(int fd) {
 
 
 
-void save(ao_t *ao, int multi) {
+void save(AO *ao) {
 	char buff[8192];
-	int r;
-	printf("start download\n");
+	int taskid;
+	ssize_t r;
+	printf("[ao] start download\n");
 	ao->file = fopen(ao->filename, "w+b");
-	ao->tasklets[0] = init_tasklet_t(0, ao->filesize);
-	ao->task_count = 1;
 
-	if (multi) {
+	if (ao->used_task) {
 		printf("use epoll, not this version\n");
-		conn_url(ao->tasklets[0], ao->url);
-		while (1) {
-			r = _recv(ao->tasklets[0]->sockfd, buff, 8192);
-			if (r == 0) break;
-			fwrite(buff, sizeof(char), r, ao->file);
-			printf("%d\n", r);
-		}
+		exit(EXIT_FAILURE);
 	} else {
 		printf("not use epoll\n");
-		conn_url(ao->tasklets[0], ao->url);
+		taskid = new_task(ao, 0, 0, 0);
+		conn_url(ao->tasks[taskid], ao->url);
 		while (1) {
-			r = _recv(ao->tasklets[0]->sockfd, buff, 8192);
+			r = _recv(ao->tasks[taskid]->sockfd, buff, 8192);
 			if (r == 0) break;
 			fwrite(buff, sizeof(char), r, ao->file);
 			printf("%d\n", r);

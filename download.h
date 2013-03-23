@@ -1,1 +1,1 @@
-void direct_download(char *str);
+void start_download(AO *ao);

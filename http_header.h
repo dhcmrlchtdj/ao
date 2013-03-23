@@ -1,23 +1,19 @@
-struct header_field_t {
+struct Header {
 	char *name;
 	char *value;
-	struct header_field_t *next;
+	struct Header *next;
 };
 
-header_field_t *init_header_field_t(char *name, char *value);
-void free_header_field_t(header_field_t *hf);
+Header *init_header(char *name, char *value);
+void free_header(Header *hf);
 
 
-char *get_header_field(header_field_t *hf, char *name);
-void set_header_field(header_field_t *hf, char *name, char *value);
+char *get_header(Header *hf, char *name);
+void set_header(Header *hf, char *name, char *value);
 
 
-char *header_to_string(header_field_t *hf);
-header_field_t *string_to_header(char *str);
+char *header_to_string(Header *hf);
+Header *string_to_header(char *str);
 
 
-void _print_header_field(header_field_t *hf); // used to debug
-
-
-void set_range(header_field_t *hf, char *start, char *stop);
-//int get_length(ao_t *ao);
+void _print_header_field(Header *hf); // used to debug
