@@ -37,6 +37,7 @@ typedef struct HeaderField HeaderField;
 #include "http_util.h"
 #include "text.h"
 #include "transport.h"
+#include "url.h"
 
 ///////////////////
 
@@ -69,8 +70,6 @@ struct AO {
 
 AO *init_AO(int num);
 void free_AO(AO *ao);
-
-void set_nonblocking(AO *ao);
 
 //////////
 

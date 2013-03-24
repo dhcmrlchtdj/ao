@@ -1,39 +1,6 @@
 #include "ao.h"
 
 
-Url *init_Url(void) {
-	Url *url = malloc(sizeof(Url));
-	return url;
-}
-
-
-
-void free_Url(Url *url) {
-	free(url);
-}
-
-
-
-void parse_url(Task *task, char *str) {
-	char *with_port = "http://%[^:/]:%[^/]%[^ ]";
-	char *no_port = "http://%[^/]%[^ ]";
-
-	int cnt = sscanf(str, with_port, task->url->host,
-			task->url->port, task->url->path);
-	if (cnt != 3) { // url without port
-		cnt = sscanf(str, no_port, task->url->host, task->url->path);
-		if (cnt != 2) {
-			fprintf(stderr, "Invalid url: %s\n", str);
-			exit(EXIT_FAILURE);
-		}
-		static_copy(task->url->port, 10,  "80", 2);
-	}
-}
-
-
-//////////
-
-
 void conn_url(Task *task, char *str) {
 	int status;
 	short redirection = 0;
@@ -48,8 +15,8 @@ void conn_url(Task *task, char *str) {
 		gen_basic_request_header(task); // such as Host, Connection ...
 		send_request(task);
 
-		filter_response_string(task);
-		parse_response_string(task);
+		filter_response_header(task);
+		parse_response_header(task);
 
 		status = task->response->status[0];
 		if (status == '2') {

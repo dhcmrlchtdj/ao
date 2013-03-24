@@ -40,10 +40,20 @@ void gen_basic_request_header(Task *task) {
 
 
 void send_request(Task *task) {
-	char *header_field = header_to_string(task->request->hf);
+	char *hf_string = malloc(sizeof(char) * LONG_STR);
+	memset(hf_string, 0, sizeof(char) * LONG_STR);
+	HeaderField *hf = task->request->hf;
+	while (hf) {
+		strcat(hf_string, hf->name);
+		strcat(hf_string, ": ");
+		strcat(hf_string, hf->value);
+		strcat(hf_string, "\r\n");
+		hf = hf->next;
+	}
+
 	sprintf(task->request->string, "GET %s HTTP/1.0\r\n%s\r\n",
-			task->url->path, header_field);
+			task->url->path, hf_string);
 	send_all(task->sockfd, task->request->string,
 			strlen(task->request->string));
-	free(header_field);
+	free(hf_string);
 }

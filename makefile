@@ -10,6 +10,7 @@ ao: ao.o \
 	http_util.o \
 	text.o \
 	transport.o \
+	url.o \
 
 clean:
 	-rm *.o ao

@@ -16,7 +16,7 @@ void free_Response(Response *response) {
 
 
 
-void filter_response_string(Task *task) {
+void filter_response_header(Task *task) {
 	char c;
 	short stop_flag = 0;
 	int pos = 0;
@@ -39,15 +39,17 @@ void filter_response_string(Task *task) {
 
 
 
-void parse_response_string(Task *task) {
+void parse_response_header(Task *task) {
+	// status code
 	static_copy(task->response->status, LONG_STR,
 			task->response->string + 9, 3);
 
-	char *string = dynamic_copy(task->response->string,
+	// header field
+	char *hf_string = dynamic_copy(task->response->string,
 			strlen(task->response->string));
 	char *name, *value, *stop;
 	HeaderField **ptr = &task->response->hf; // pointer to address of hf
-	stop = strchr(string, '\n');
+	stop = strchr(hf_string, '\n');
 	name = stop + 2;
 	while (1) {
 		stop = strchr(name, ':');
@@ -62,5 +64,5 @@ void parse_response_string(Task *task) {
 
 		name = stop + 2; // move to next header name
 	}
-	free(string);
+	free(hf_string);
 }

@@ -7,5 +7,5 @@ struct Response {
 Response *init_Response(void);
 void free_Response(Response *response);
 
-void filter_response_string(Task *task);
-void parse_response_string(Task *task);
+void filter_response_header(Task *task);
+void parse_response_header(Task *task);
