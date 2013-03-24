@@ -31,7 +31,7 @@ ssize_t _recv(int sockfd, void *buf, size_t len) {
 
 
 
-void create_tcp_conn(Task *task) {
+void tcp_conn(task_t *task) {
 	struct addrinfo hints, *res, *rp;
 	int status, sockfd;
 
@@ -83,61 +83,3 @@ void send_all(int sockfd, void *data, size_t len) {
 		offset += sent;
 	}
 }
-
-
-
-/*
-void nonblocking(int fd) {
-	int flags, status;
-	flags = fcntl(fd, F_GETFL, 0);
-	if (flags == -1) {
-		perror("nonblocking get error");
-		exit(EXIT_FAILURE);
-	}
-	status = fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-	if (status == -1) {
-		perror("nonblocking set error");
-		exit(EXIT_FAILURE);
-	}
-}
-*/
-
-
-void save(AO *ao) {
-	char buff[RECV_LEN];
-	ssize_t received;
-	int taskid;
-	Task *task;
-	printf("[ao] start download\n");
-
-	ao->file = fopen(ao->filename, "w+b");
-	taskid = new_Task(ao, false, 0, 0);
-	task = ao->tasks[taskid];
-	conn_url(task, ao->url);
-	while (1) {
-		received = _recv(task->sockfd, buff, RECV_LEN);
-		if (received == 0) break;
-		fwrite(buff, sizeof(char), received, ao->file);
-		task->received += received;
-		printf("%ld ", received);
-	}
-
-	printf("\n[ao] download finish\n");
-	fclose(ao->file);
-	close(task->sockfd);
-	del_Task(ao, task);
-}
-
-
-
-void save_multithread(AO *ao) {
-	printf("[ao] start download\n");
-
-	char buff[RECV_LEN];
-	ssize_t received;
-	setup_Tasks(ao);
-
-	/*ao->file = fopen(ao->filename, "w+b");*/
-	/*fclose(ao->file);*/
-}
-

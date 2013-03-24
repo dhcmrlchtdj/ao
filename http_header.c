@@ -1,8 +1,8 @@
 #include "ao.h"
 
 
-HeaderField *init_HeaderField(char *name, char *value) {
-	HeaderField *hf = malloc(sizeof(HeaderField));
+header_field_t *init_header_field(char *name, char *value) {
+	header_field_t *hf = malloc(sizeof(header_field_t));
 	hf->name = dynamic_copy(name, strlen(name));
 	hf->value = dynamic_copy(value, strlen(value));
 	hf->next = NULL;
@@ -11,8 +11,8 @@ HeaderField *init_HeaderField(char *name, char *value) {
 
 
 
-void free_HeaderField(HeaderField *hf) {
-	HeaderField *ptr = hf;
+void free_header_field(header_field_t *hf) {
+	header_field_t *ptr = hf;
 	while (ptr) {
 		hf = ptr->next;
 		free(ptr->name);
@@ -24,7 +24,7 @@ void free_HeaderField(HeaderField *hf) {
 
 
 
-char *get_header_field(HeaderField *hf, char *name) {
+char *get_header(header_field_t *hf, char *name) {
 	while (hf) {
 		if (strcasecmp(hf->name, name) == 0)
 			return hf->value;
@@ -36,7 +36,8 @@ char *get_header_field(HeaderField *hf, char *name) {
 
 
 
-void _print_header(HeaderField *hf) {
+
+void _print_header_field(header_field_t *hf) {
 	while (hf) {
 		printf("%s: %s\n", hf->name, hf->value);
 		hf = hf->next;

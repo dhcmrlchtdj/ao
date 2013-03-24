@@ -1,90 +1,61 @@
 #include "ao.h"
 
 
-AO *init_AO(int num) {
-	AO *ao = malloc(sizeof(AO) + num * sizeof(Task *));
-	ao->filesize = 0;
-	ao->max_tasks = num;
-	for (int i = 0; i < ao->max_tasks; i++)
-		ao->tasks[i] = NULL;
-	return ao;
+env_t *init_env(void) {
+	env_t *env = malloc(sizeof(env_t));
+	memset(env, 0, sizeof(env_t));
+	env->filesize = 0;
+	return env;
 }
 
 
-void free_AO(AO *ao) {
-	for (int i = 0; i < ao->max_tasks; i++)
-		if (ao->tasks[i])
-			free_Task(ao->tasks[i]);
-	free(ao);
+
+void free_env(env_t *env) {
+	free(env);
 }
 
 
-void setup_Tasks(AO *ao) {
-	unsigned long block_size = ao->filesize / ao->max_tasks;
-	unsigned long start = 0, stop = 0;
-	for (int i = 0; i < ao->max_tasks - 1; i++) {
-		start = stop;
-		stop += block_size;
-		new_Task(ao, true, start, stop - 1);
-		printf("%lu-%lu\n", start, stop -1);
+
+task_t *init_task(env_t *env, bool add_range, ...) {
+	task_t *task = malloc(sizeof(task_t));
+	task->env = env;
+	task->url = init_url();
+	task->request = init_request();
+	task->response = init_response();
+	if (add_range) {
+		task->add_range = true;
+		va_list ap;
+		va_start(ap, add_range);
+		task->range_start = va_arg(ap, unsigned long);
+		task->range_stop = va_arg(ap, unsigned long);
+		va_end(ap);
+	} else {
+		task->add_range = false;
+		task->range_start = 0;
+		task->range_stop = 0;
 	}
-	new_Task(ao, true, stop, ao->filesize);
-	printf("%lu-%lu\n", stop, ao->filesize);
-}
-
-
-
-int new_Task(AO *ao, bool range, unsigned long start, unsigned long stop) {
-	for (int i = 0; i < ao->max_tasks; i++) {
-		if (ao->tasks[i] == NULL) {
-			ao->tasks[i] = init_Task(range, start, stop);
-			ao->tasks[i]->taskid = i;
-			return i;
-		}
-	}
-	fprintf(stderr, "can not create more tasks\n");
-	return -1;
-}
-
-
-
-void del_Task(AO *ao, Task *task) {
-	ao->tasks[task->taskid] = NULL;
-	free_Task(task);
-}
-
-
-
-Task *init_Task(bool range, unsigned long start, unsigned long stop) {
-	Task *task = malloc(sizeof(Task));
-	task->url = init_Url();
-	task->request = init_Request();
-	task->response = init_Response();
-	task->range = range;
-	task->start = start;
-	task->stop = stop;
-	task->received = 0;
+	task->offset = task->range_start;
 	return task;
 }
 
 
 
-void clear_Task(Task *task) {
-	free_Url(task->url);
-	free_Request(task->request);
-	free_Response(task->response);
-	task->url = init_Url();
-	task->request = init_Request();
-	task->response = init_Response();
+void free_task(task_t *task) {
+	close(task->sockfd);
+	free_url(task->url);
+	free_request(task->request);
+	free_response(task->response);
 }
 
 
 
-void free_Task(Task *task) {
-	free_Url(task->url);
-	free_Request(task->request);
-	free_Response(task->response);
-	free(task);
+void clear_task(task_t *task) {
+	free_url(task->url);
+	free_request(task->request);
+	free_response(task->response);
+	task->url = init_url();
+	task->request = init_request();
+	task->response = init_response();
 }
 
 

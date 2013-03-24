@@ -1,11 +1,6 @@
-void create_tcp_conn(Task *task);
-
-void send_all(int sockfd, void *data, size_t len);
-
 ssize_t _send(int sockfd, void *buf, size_t len);
 ssize_t _recv(int sockfd, void *buf, size_t len);
 
-//void nonblocking(int fd);
+void tcp_conn(task_t *task);
 
-void save(AO *ao);
-void save_multithread(AO *ao);
+void send_all(int sockfd, void *data, size_t len);

@@ -1,20 +1,20 @@
 #include "ao.h"
 
 
-Url *init_Url(void) {
-	Url *url = malloc(sizeof(Url));
+url_t *init_url(void) {
+	url_t *url = malloc(sizeof(url_t));
 	return url;
 }
 
 
 
-void free_Url(Url *url) {
+void free_url(url_t *url) {
 	free(url);
 }
 
 
 
-void parse_url(Task *task, char *str) {
+void parse_url(task_t *task, char *str) {
 	char *with_port = "http://%[^:/]:%[^/]%[^ ]";
 	char *no_port = "http://%[^/]%[^ ]";
 

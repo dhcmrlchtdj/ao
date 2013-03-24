@@ -1,24 +1,25 @@
 #include "ao.h"
 
 
-Response *init_Response(void) {
-	Response *response = malloc(sizeof(Response));
+response_t *init_response(void) {
+	response_t *response = malloc(sizeof(response_t));
 	response->hf = NULL;
 	return response;
 }
 
 
 
-void free_Response(Response *response) {
-	free_HeaderField(response->hf);
+void free_response(response_t *response) {
+	free_header_field(response->hf);
 	free(response);
 }
 
 
 
-void filter_response_header(Task *task) {
+
+void filter_response_header(task_t *task) {
 	char c;
-	short stop_flag = 0;
+	int stop_flag = 0;
 	int pos = 0;
 	while (stop_flag != 4) {
 		_recv(task->sockfd, &c, 1);
@@ -39,7 +40,7 @@ void filter_response_header(Task *task) {
 
 
 
-void parse_response_header(Task *task) {
+void parse_response_header(task_t *task) {
 	// status code
 	static_copy(task->response->status, LONG_STR,
 			task->response->string + 9, 3);
@@ -48,7 +49,7 @@ void parse_response_header(Task *task) {
 	char *hf_string = dynamic_copy(task->response->string,
 			strlen(task->response->string));
 	char *name, *value, *stop;
-	HeaderField **ptr = &task->response->hf; // pointer to address of hf
+	header_field_t **ptr = &task->response->hf; // pointer to address of hf
 	stop = strchr(hf_string, '\n');
 	name = stop + 2;
 	while (1) {
@@ -59,7 +60,7 @@ void parse_response_header(Task *task) {
 		stop = strchr(value, '\r');
 		*stop = '\0';
 
-		*ptr = init_HeaderField(name, value);
+		*ptr = init_header_field(name, value);
 		ptr = &(*ptr)->next;
 
 		name = stop + 2; // move to next header name

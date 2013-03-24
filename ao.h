@@ -7,8 +7,8 @@
 #include <stdbool.h>
 #include <stdarg.h>
 #include <unistd.h>
-//#include <fcntl.h>
-//#include <sys/epoll.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -22,14 +22,12 @@
 #define RECV_LEN 8192
 #define MAX_REDIRECTION 5
 
-typedef struct AO AO;
-typedef struct Task Task;
-typedef struct Url Url;
-typedef struct Request Request;
-typedef struct Response Response;
-typedef struct HeaderField HeaderField;
-
-///////////////////
+typedef struct env_t env_t;
+typedef struct header_field_t header_field_t;
+typedef struct request_t request_t;
+typedef struct response_t response_t;
+typedef struct task_t task_t;
+typedef struct url_t url_t;
 
 #include "download.h"
 #include "http_header.h"
@@ -42,36 +40,36 @@ typedef struct HeaderField HeaderField;
 
 ///////////////////
 
-struct Task {
-	int taskid;
-	int sockfd;
-	bool range;
-	unsigned long start;
-	unsigned long stop;
-	unsigned long received;
-	Url *url;
-	Request *request;
-	Response *response;
-};
-
-Task *init_Task(bool range, unsigned long start, unsigned long stop);
-void clear_Task(Task *task);
-void free_Task(Task *task);
-int new_Task(AO *ao, bool range, unsigned long start, unsigned long stop);
-void del_Task(AO *ao, Task *task);
-void setup_Tasks(AO *ao);
-
-struct AO {
-	char url[SHORT_STR];
+struct env_t {
+	bool support_range; // whether support range header
+	int task_num; // max threads
+	int fd; // file descripter
 	char filename[SHORT_STR];
 	unsigned long filesize;
-	FILE *file;
-	int max_tasks;
-	Task *tasks[]; // array of pointer to struct task
+	char url[SHORT_STR];
 };
 
-AO *init_AO(int num);
-void free_AO(AO *ao);
+env_t *init_env(void);
+void free_env(env_t *env);
+
+
+
+struct task_t {
+	int sockfd;
+	env_t *env;
+	url_t *url;
+	request_t *request;
+	response_t *response;
+	bool add_range;
+	unsigned long range_start;
+	unsigned long range_stop;
+	unsigned long offset;
+};
+
+// ... == unsigned long start, unsigned long stop
+task_t *init_task(env_t *env, bool add_range, ...);
+void free_task(task_t *task);
+void clear_task(task_t *task);
 
 //////////
 
