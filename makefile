@@ -1,4 +1,4 @@
-CC = clang -O0 -g
+CC = clang -O0 -g -pthread
 
 .PHONY: clean
 

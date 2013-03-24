@@ -1,6 +1,6 @@
 #include "ao.h"
 
-void dl_epoll(AO *ao) {
+void start_download(AO *ao) {
 	int taskid;
 	bool support_range;
 	char *p;
@@ -39,7 +39,7 @@ void dl_epoll(AO *ao) {
 	del_Task(ao, ao->tasks[taskid]);
 
 	if (support_range) {
-		save_epoll(ao);
+		save_multithread(ao);
 	} else {
 		save(ao);
 	}

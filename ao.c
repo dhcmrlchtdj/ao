@@ -19,6 +19,20 @@ void free_AO(AO *ao) {
 }
 
 
+void setup_Tasks(AO *ao) {
+	unsigned long block_size = ao->filesize / ao->max_tasks;
+	unsigned long start = 0, stop = 0;
+	for (int i = 0; i < ao->max_tasks - 1; i++) {
+		start = stop;
+		stop += block_size;
+		new_Task(ao, true, start, stop - 1);
+		printf("%lu-%lu\n", start, stop -1);
+	}
+	new_Task(ao, true, stop, ao->filesize);
+	printf("%lu-%lu\n", stop, ao->filesize);
+}
+
+
 
 int new_Task(AO *ao, bool range, unsigned long start, unsigned long stop) {
 	for (int i = 0; i < ao->max_tasks; i++) {

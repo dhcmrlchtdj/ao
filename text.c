@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
 
 	AO *ao = init_AO(num);
 	static_copy(ao->url, SHORT_STR, argv[optind], strlen(argv[optind]));
-	dl_epoll(ao);
+	start_download(ao);
 	free_AO(ao);
 
 	return 0;

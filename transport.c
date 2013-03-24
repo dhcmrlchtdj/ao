@@ -86,7 +86,7 @@ void send_all(int sockfd, void *data, size_t len) {
 
 
 
-
+/*
 void nonblocking(int fd) {
 	int flags, status;
 	flags = fcntl(fd, F_GETFL, 0);
@@ -100,6 +100,7 @@ void nonblocking(int fd) {
 		exit(EXIT_FAILURE);
 	}
 }
+*/
 
 
 void save(AO *ao) {
@@ -128,25 +129,15 @@ void save(AO *ao) {
 }
 
 
-void save_epoll(AO *ao) {
+
+void save_multithread(AO *ao) {
 	printf("[ao] start download\n");
 
 	char buff[RECV_LEN];
 	ssize_t received;
-	int i;
-	unsigned long block_size = ao->filesize / ao->max_tasks;
-	unsigned long start = 0, stop = 0;
-
-	for (i = 0; i < ao->max_tasks - 1; i++) {
-		start = stop;
-		stop += block_size;
-		new_Task(ao, true, start, stop - 1);
-		printf("%lu-%lu\n", start, stop -1);
-	}
-	new_Task(ao, true, stop, ao->filesize);
-	printf("%lu-%lu\n", stop, ao->filesize);
-
+	setup_Tasks(ao);
 
 	/*ao->file = fopen(ao->filename, "w+b");*/
 	/*fclose(ao->file);*/
 }
+

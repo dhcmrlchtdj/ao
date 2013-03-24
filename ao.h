@@ -7,12 +7,13 @@
 #include <stdbool.h>
 #include <stdarg.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <sys/epoll.h>
+//#include <fcntl.h>
+//#include <sys/epoll.h>
 #include <errno.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
+#include <pthread.h>
 
 ///////////////////
 
@@ -58,6 +59,7 @@ void clear_Task(Task *task);
 void free_Task(Task *task);
 int new_Task(AO *ao, bool range, unsigned long start, unsigned long stop);
 void del_Task(AO *ao, Task *task);
+void setup_Tasks(AO *ao);
 
 struct AO {
 	char url[SHORT_STR];
