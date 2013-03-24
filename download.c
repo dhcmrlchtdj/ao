@@ -104,7 +104,7 @@ void *_dl_thread_routine(void *arg) {
 		if (received == 0) break;
 		task->offset += received;
 		pwrite(task->env->fd, buff, received, task->offset);
-		printf(".");
+		printf("%lu ", pthread_self());
 	}
 
 	free_task(task);

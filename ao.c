@@ -5,6 +5,7 @@ env_t *init_env(void) {
 	env_t *env = malloc(sizeof(env_t));
 	memset(env, 0, sizeof(env_t));
 	env->filesize = 0;
+	env->task_num = 6;
 	return env;
 }
 
@@ -45,6 +46,7 @@ void free_task(task_t *task) {
 	free_url(task->url);
 	free_request(task->request);
 	free_response(task->response);
+	free(task);
 }
 
 
