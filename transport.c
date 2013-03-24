@@ -110,7 +110,7 @@ void save(AO *ao) {
 	printf("[ao] start download\n");
 
 	ao->file = fopen(ao->filename, "w+b");
-	taskid = new_Task(ao, 0, 0, 0);
+	taskid = new_Task(ao, false, 0, 0);
 	task = ao->tasks[taskid];
 	conn_url(task, ao->url);
 	while (1) {
@@ -121,13 +121,32 @@ void save(AO *ao) {
 		printf("%ld ", received);
 	}
 
-	printf("\ndownload finish\n");
+	printf("\n[ao] download finish\n");
+	fclose(ao->file);
 	close(task->sockfd);
 	del_Task(ao, task);
-	fclose(ao->file);
 }
 
 
 void save_epoll(AO *ao) {
-	save(ao);
+	printf("[ao] start download\n");
+
+	char buff[RECV_LEN];
+	ssize_t received;
+	int i;
+	unsigned long block_size = ao->filesize / ao->max_tasks;
+	unsigned long start = 0, stop = 0;
+
+	for (i = 0; i < ao->max_tasks - 1; i++) {
+		start = stop;
+		stop += block_size;
+		new_Task(ao, true, start, stop - 1);
+		printf("%lu-%lu\n", start, stop -1);
+	}
+	new_Task(ao, true, stop, ao->filesize);
+	printf("%lu-%lu\n", stop, ao->filesize);
+
+
+	/*ao->file = fopen(ao->filename, "w+b");*/
+	/*fclose(ao->file);*/
 }

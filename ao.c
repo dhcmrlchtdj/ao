@@ -4,16 +4,15 @@
 AO *init_AO(int num) {
 	AO *ao = malloc(sizeof(AO) + num * sizeof(Task *));
 	ao->filesize = 0;
-	ao->support_range = false;
-	ao->max_tasks = num - 1; // start with 0
-	for (int i = 0; i <= ao->max_tasks; i++)
+	ao->max_tasks = num;
+	for (int i = 0; i < ao->max_tasks; i++)
 		ao->tasks[i] = NULL;
 	return ao;
 }
 
 
 void free_AO(AO *ao) {
-	for (int i = 0; i <= ao->max_tasks; i++)
+	for (int i = 0; i < ao->max_tasks; i++)
 		if (ao->tasks[i])
 			free_Task(ao->tasks[i]);
 	free(ao);
@@ -21,10 +20,10 @@ void free_AO(AO *ao) {
 
 
 
-int new_Task(AO *ao, int range_type, unsigned long start, unsigned long stop) {
-	for (int i = 0; i <= ao->max_tasks; i++) {
+int new_Task(AO *ao, bool range, unsigned long start, unsigned long stop) {
+	for (int i = 0; i < ao->max_tasks; i++) {
 		if (ao->tasks[i] == NULL) {
-			ao->tasks[i] = init_Task(range_type, start, stop);
+			ao->tasks[i] = init_Task(range, start, stop);
 			ao->tasks[i]->taskid = i;
 			return i;
 		}
@@ -42,12 +41,12 @@ void del_Task(AO *ao, Task *task) {
 
 
 
-Task *init_Task(int range_type, unsigned long start, unsigned long stop) {
+Task *init_Task(bool range, unsigned long start, unsigned long stop) {
 	Task *task = malloc(sizeof(Task));
 	task->url = init_Url();
 	task->request = init_Request();
 	task->response = init_Response();
-	task->range_type = range_type;
+	task->range = range;
 	task->start = start;
 	task->stop = stop;
 	task->received = 0;

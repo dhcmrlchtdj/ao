@@ -2,10 +2,11 @@
 
 void dl_epoll(AO *ao) {
 	int taskid;
+	bool support_range;
 	char *p;
 
 	// connect to url
-	taskid = new_Task(ao, 2, 0, 0);
+	taskid = new_Task(ao, true, 0, 1);
 	conn_url(ao->tasks[taskid], ao->url);
 	printf("[ao] connect to %s\n", ao->url);
 
@@ -16,7 +17,7 @@ void dl_epoll(AO *ao) {
 	// whether support range & get filesize
 	p = get_header_field(ao->tasks[taskid]->response->hf, "Content-Range");
 	if (p == NULL) {
-		ao->support_range = false;
+		support_range = false;
 		// not support
 		printf("[ao] ! not support 'Range'.\n");
 		p = get_header_field(ao->tasks[taskid]->response->hf,
@@ -29,7 +30,7 @@ void dl_epoll(AO *ao) {
 			printf("[ao] filesize: %lu\n", ao->filesize);
 		}
 	} else {
-		ao->support_range = true;
+		support_range = true;
 		get_filesize_by_range(ao, p);
 		printf("[ao] filesize: %lu\n", ao->filesize);
 	}
@@ -37,7 +38,7 @@ void dl_epoll(AO *ao) {
 	close(ao->tasks[taskid]->sockfd);
 	del_Task(ao, ao->tasks[taskid]);
 
-	if (ao->support_range) {
+	if (support_range) {
 		save_epoll(ao);
 	} else {
 		save(ao);

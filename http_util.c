@@ -56,6 +56,7 @@ void conn_url(Task *task, char *str) {
 			break;
 		} else if (status != '3') {
 			fprintf(stderr, "conn url error. status is %c\n", status);
+			printf("%s%s", task->request->string, task->response->string);
 			exit(EXIT_FAILURE);
 		} else if (redirection > MAX_REDIRECTION) {
 			fprintf(stderr, "[ao] redirection too many times\n");
@@ -86,10 +87,11 @@ void get_filename_by_path(AO *ao, char *path) {
 		// use "default" if not filename
 		static_copy(ao->filename, SHORT_STR, "default", 7);
 	} else {
-		// FIXME ?
+		// FIXME
 		stop = strchr(start, '?');
 		if (stop) {
-			static_copy(ao->filename, SHORT_STR, start, stop - start);
+			// stop should back one step
+			static_copy(ao->filename, SHORT_STR, start, (stop - 1) - start);
 		} else {
 			static_copy(ao->filename, SHORT_STR, start, strlen(start));
 		}

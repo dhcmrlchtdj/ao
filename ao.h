@@ -43,7 +43,7 @@ typedef struct HeaderField HeaderField;
 struct Task {
 	int taskid;
 	int sockfd;
-	int range_type; // 0 1 2
+	bool range;
 	unsigned long start;
 	unsigned long stop;
 	unsigned long received;
@@ -52,17 +52,16 @@ struct Task {
 	Response *response;
 };
 
-Task *init_Task(int range_type, unsigned long start, unsigned long stop);
+Task *init_Task(bool range, unsigned long start, unsigned long stop);
 void clear_Task(Task *task);
 void free_Task(Task *task);
-int new_Task(AO *ao, int range_type, unsigned long start, unsigned long stop);
+int new_Task(AO *ao, bool range, unsigned long start, unsigned long stop);
 void del_Task(AO *ao, Task *task);
 
 struct AO {
 	char url[SHORT_STR];
 	char filename[SHORT_STR];
 	unsigned long filesize;
-	bool support_range;
 	FILE *file;
 	int max_tasks;
 	Task *tasks[]; // array of pointer to struct task
@@ -70,6 +69,8 @@ struct AO {
 
 AO *init_AO(int num);
 void free_AO(AO *ao);
+
+void set_nonblocking(AO *ao);
 
 //////////
 
