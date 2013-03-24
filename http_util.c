@@ -26,7 +26,7 @@ void parse_url(Task *task, char *str) {
 			fprintf(stderr, "Invalid url: %s\n", str);
 			exit(EXIT_FAILURE);
 		}
-		static_copy(task->url->port, SHORT_STR,  "80", 2);
+		static_copy(task->url->port, 10,  "80", 2);
 	}
 }
 
