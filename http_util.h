@@ -1,5 +1,3 @@
-#define MAX_REDIRECTION 5
-
 struct Url {
 	char host[50];
 	char port[10];

@@ -50,6 +50,7 @@ Task *init_Task(int range_type, unsigned long start, unsigned long stop) {
 	task->range_type = range_type;
 	task->start = start;
 	task->stop = stop;
+	task->received = 0;
 	return task;
 }
 
@@ -87,11 +88,10 @@ char *dynamic_copy(char *src, size_t src_size) {
 
 
 void static_copy(char *dest, size_t dest_size, char *src, size_t src_size) {
-	if (dest_size >= src_size) {
-		memcpy(dest, src, src_size);
-		dest[src_size] = '\0';
+	if (dest_size >= src_size + 1) {
+		memcpy(dest, src, src_size + 1);
 	} else {
-		memcpy(dest, src, dest_size);
+		memcpy(dest, src, dest_size - 1);
 		dest[dest_size] = '\0';
 	}
 }

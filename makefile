@@ -8,7 +8,7 @@ ao: ao.o \
 	http_request.o \
 	http_response.o \
 	http_util.o \
-	option.o \
+	text.o \
 	transport.o \
 
 clean:

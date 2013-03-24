@@ -1,6 +1,6 @@
 struct Response {
 	char status[4];
-	char string[LONG_STR]; // caution
+	char string[LONG_STR];
 	HeaderField *hf;
 };
 

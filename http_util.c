@@ -22,11 +22,11 @@ void parse_url(Task *task, char *str) {
 			task->url->port, task->url->path);
 	if (cnt != 3) { // url without port
 		cnt = sscanf(str, no_port, task->url->host, task->url->path);
-		static_copy(task->url->port, SHORT_STR,  "80", 2);
 		if (cnt != 2) {
 			fprintf(stderr, "Invalid url: %s\n", str);
 			exit(EXIT_FAILURE);
 		}
+		static_copy(task->url->port, SHORT_STR,  "80", 2);
 	}
 }
 

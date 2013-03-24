@@ -18,6 +18,7 @@
 
 #define SHORT_STR 1024
 #define LONG_STR 4096
+#define RECV_LEN 8192
 #define MAX_REDIRECTION 5
 
 typedef struct AO AO;
@@ -34,7 +35,7 @@ typedef struct HeaderField HeaderField;
 #include "http_request.h"
 #include "http_response.h"
 #include "http_util.h"
-#include "option.h"
+#include "text.h"
 #include "transport.h"
 
 ///////////////////
@@ -45,6 +46,7 @@ struct Task {
 	int range_type; // 0 1 2
 	unsigned long start;
 	unsigned long stop;
+	unsigned long received;
 	Url *url;
 	Request *request;
 	Response *response;

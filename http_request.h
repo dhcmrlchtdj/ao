@@ -1,5 +1,5 @@
 struct Request {
-	//char *request;
+	char string[LONG_STR];
 	HeaderField *hf;
 };
 

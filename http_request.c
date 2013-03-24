@@ -10,7 +10,6 @@ Request *init_Request(void) {
 
 void free_Request(Request *request) {
 	free_HeaderField(request->hf);
-	/*free(request->request);*/
 	free(request);
 }
 
@@ -49,12 +48,10 @@ void gen_basic_request_header(Task *task) {
 
 
 void send_request(Task *task) {
-	char *format = "GET %s HTTP/1.0\r\n%s\r\n";
-	char *req = header_to_string(task->request->hf);
-	char *buff = malloc(sizeof(char) * LONG_STR);
-	sprintf(buff, "GET %s HTTP/1.0\r\n%s\r\n", task->url->path, req);
-
-	send_all(task->sockfd, buff, strlen(buff));
-	free(req);
-	free(buff);
+	char *header_field = header_to_string(task->request->hf);
+	sprintf(task->request->string, "GET %s HTTP/1.0\r\n%s\r\n",
+			task->url->path, header_field);
+	send_all(task->sockfd, task->request->string,
+			strlen(task->request->string));
+	free(header_field);
 }

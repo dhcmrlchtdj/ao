@@ -64,6 +64,7 @@ void set_header(Header *hf, char *name, char *value) {
 
 
 char *header_to_string(HeaderField *hf) {
+	// must be free by caller
 	char *hf_string = malloc(sizeof(char) * LONG_STR);
 	memset(hf_string, 0, sizeof(char) * LONG_STR);
 	while (hf) {

@@ -76,7 +76,7 @@ void create_tcp_conn(Task *task) {
 
 void send_all(int sockfd, void *data, size_t len) {
 	ssize_t sent;
-	int offset = 0;
+	long offset = 0;
 	while (len) {
 		sent = _send(sockfd, data + offset, len);
 		len -= sent;
@@ -103,23 +103,28 @@ void nonblocking(int fd) {
 
 
 void save(AO *ao) {
-	char buff[8192];
+	char buff[RECV_LEN];
+	ssize_t received;
 	int taskid;
-	ssize_t r;
+	Task *task;
 	printf("[ao] start download\n");
-	ao->file = fopen(ao->filename, "w+b");
 
+	ao->file = fopen(ao->filename, "w+b");
 	taskid = new_Task(ao, 0, 0, 0);
-	conn_url(ao->tasks[taskid], ao->url);
+	task = ao->tasks[taskid];
+	conn_url(task, ao->url);
 	while (1) {
-		r = _recv(ao->tasks[taskid]->sockfd, buff, 8192);
-		if (r == 0) break;
-		fwrite(buff, sizeof(char), r, ao->file);
-		printf("%ld", r);
+		received = _recv(task->sockfd, buff, RECV_LEN);
+		if (received == 0) break;
+		fwrite(buff, sizeof(char), received, ao->file);
+		task->received += received;
+		printf("%ld ", received);
 	}
 
-	fclose(ao->file);
 	printf("\ndownload finish\n");
+	close(task->sockfd);
+	del_Task(ao, task);
+	fclose(ao->file);
 }
 
 
