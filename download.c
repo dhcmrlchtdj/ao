@@ -4,6 +4,7 @@
 // get filename and filesize
 // test whether support range
 void dl_prepare(env_t *env) {
+	char *val; //response header value
 	task_t *task = init_task(env, true, 0, 1);
 
 	conn_url(task);
@@ -16,24 +17,23 @@ void dl_prepare(env_t *env) {
 	}
 	printf("[ao] filename: %s\n", env->filename);
 
-	char *val;
 	val = get_header(task->response->hf, "Content-Range");
 	if (val == NULL) {
-		// not support
+		// not support range
 		env->support_range = false;
-		printf("[ao] ! not support 'Range'.\n");
+		printf("[ao] ! not support 'Range' header.\n");
 		val = get_header(task->response->hf, "Content-Length");
 		if (val == NULL) {
 			env->filesize = 0;
 			printf("[ao] ! filesize not found.\n");
 		} else {
-			env->filesize = strtoul(val, NULL, 0);
-			printf("[ao] filesize: %lu\n", env->filesize);
+			env->filesize = atol(val);
+			printf("[ao] filesize: %ld\n", env->filesize);
 		}
 	} else {
 		env->support_range = true;
 		get_filesize_by_range(env, val);
-		printf("[ao] filesize: %lu\n", env->filesize);
+		printf("[ao] filesize: %ld\n", env->filesize);
 	}
 
 	free_task(task);
@@ -80,8 +80,8 @@ void dl_multi_thread(env_t *env) {
 	pthread_t tids[env->task_num];
 	task_t *task;
 	int i;
-	unsigned long block_size = env->filesize / env->task_num;
-	unsigned long start = 0, stop = 0;
+	off_t block_size = env->filesize / env->task_num;
+	off_t start = 0, stop = 0;
 	for (i = 0; i < env->task_num - 1; i++) {
 		start = stop;
 		stop += block_size;

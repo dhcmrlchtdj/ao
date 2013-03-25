@@ -41,12 +41,12 @@ typedef struct url_t url_t;
 ///////////////////
 
 struct env_t {
-	bool support_range; // whether support range header
-	int task_num; // max threads
 	int fd; // file descripter
-	char filename[SHORT_STR];
 	off_t filesize;
+	int task_num; // max threads
+	char filename[SHORT_STR];
 	char url[SHORT_STR];
+	bool support_range; // whether support range header
 };
 
 env_t *init_env(void);
@@ -65,7 +65,7 @@ struct task_t {
 	off_t range_stop;
 };
 
-// ... == unsigned long start, unsigned long stop
+// ... == off_t start, off_t stop
 task_t *init_task(env_t *env, bool add_range, ...);
 void free_task(task_t *task);
 void clear_task(task_t *task);
