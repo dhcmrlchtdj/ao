@@ -54,3 +54,29 @@ void print_usage(void) {
 		"    -h\t\t  帮助\n";
 	printf("%s\n", usage);
 }
+
+
+
+void print_speed(env_t *env) {
+	int pos = 0;
+	while (pos++ < 100) putchar('\b');
+
+	struct stat file_stat;
+	fstat(env->fd, &file_stat);
+
+	int percent = (double)file_stat.st_size / env->filesize * 100;
+	printf("[%3d%%]", percent);
+
+	percent /= 2;
+	pos = 0;
+	printf(" [");
+	while (pos++ < percent) putchar('.');
+	while (pos++ < 50) putchar(' ');
+	printf("] ");
+
+	printf("[%s] ", "unkonwn");
+	printf("[%s]", "unkonwn");
+
+	fflush(stdout);
+}
+

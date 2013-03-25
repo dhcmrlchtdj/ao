@@ -6,12 +6,16 @@ env_t *init_env(void) {
 	memset(env, 0, sizeof(env_t));
 	env->filesize = 0;
 	env->task_num = 6;
+	pthread_mutex_init(&env->mutex, NULL);
+	pthread_cond_init(&env->cond, NULL);
 	return env;
 }
 
 
 
 void free_env(env_t *env) {
+	pthread_mutex_destroy(&env->mutex);
+	pthread_cond_destroy(&env->cond);
 	free(env);
 }
 

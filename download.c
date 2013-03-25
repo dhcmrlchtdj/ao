@@ -52,7 +52,7 @@ void dl_start(env_t *env) {
 	}
 
 	close(env->fd);
-	printf("[ao] download finished.\n");
+	printf("\n[ao] download finished.\n");
 }
 
 
@@ -90,6 +90,15 @@ void dl_multi_thread(env_t *env) {
 	}
 	task = init_task(env, true, stop, env->filesize);
 	pthread_create(&tids[i], NULL, _dl_thread_routine, task);
+
+	signal(SIGALRM, handle_alarm);
+	ualarm(1000, 100);
+	if (sigsetjmp(_dl_jmpbuf, 1) != 0) {
+		print_speed(env);
+	}
+	_dl_canjmp = 1;
+
+	/*pause()*/
 
 	for (i = 0; i < env->task_num; i++) {
 		pthread_join(tids[i], NULL);
@@ -136,4 +145,12 @@ void check_filename(env_t *env) {
 		printf("please specify a filename\n");
 		exit(EXIT_FAILURE);
 	}
+}
+
+
+
+void handle_alarm(int signo) {
+	if (_dl_canjmp == 0) return;
+	_dl_canjmp = 0;
+	siglongjmp(_dl_jmpbuf, 1);
 }
