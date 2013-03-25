@@ -29,7 +29,7 @@ void gen_basic_request_header(task_t *task) {
 	ptr->next = init_header_field("User-Agent", "ao/pre-alpha");
 
 	if (task->add_range) {
-		sprintf(buff, "bytes=%lu-%lu", task->range_start, task->range_stop);
+		sprintf(buff, "bytes=%ld-%ld", task->range_start, task->range_stop);
 		ptr = ptr->next;
 		ptr->next = init_header_field("Range", buff);
 	}

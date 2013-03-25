@@ -46,12 +46,13 @@ void parse_response_header(task_t *task) {
 			task->response->string + 9, 3);
 
 	// header field
+	header_field_t **ptr = &task->response->hf; // pointer to address of hf
 	char *hf_string = dynamic_copy(task->response->string,
 			strlen(task->response->string));
+
 	char *name, *value, *stop;
-	header_field_t **ptr = &task->response->hf; // pointer to address of hf
 	stop = strchr(hf_string, '\n');
-	name = stop + 2;
+	name = stop + 1; // move to first header
 	while (1) {
 		stop = strchr(name, ':');
 		if (stop == NULL) break; // no more header field

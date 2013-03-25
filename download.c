@@ -75,7 +75,7 @@ void dl_single_thread(env_t *env) {
 void dl_multi_thread(env_t *env) {
 	pthread_t tids[env->task_num];
 	task_t *task;
-	int status, i;
+	int i;
 	unsigned long block_size = env->filesize / env->task_num;
 	unsigned long start = 0, stop = 0;
 	for (i = 0; i < env->task_num - 1; i++) {
@@ -87,8 +87,9 @@ void dl_multi_thread(env_t *env) {
 	task = init_task(env, true, stop, env->filesize);
 	pthread_create(&tids[i], NULL, _dl_thread_routine, task);
 
-	for (i = 0; i < env->task_num; i++)
+	for (i = 0; i < env->task_num; i++) {
 		pthread_join(tids[i], NULL);
+	}
 }
 
 
@@ -102,9 +103,8 @@ void *_dl_thread_routine(void *arg) {
 	while (1) {
 		received = _recv(task->sockfd, buff, RECV_LEN);
 		if (received == 0) break;
-		task->offset += received;
-		pwrite(task->env->fd, buff, received, task->offset);
-		printf("%lu ", pthread_self());
+		pwrite(task->env->fd, buff, received, task->range_start);
+		task->range_start += received;
 	}
 
 	free_task(task);

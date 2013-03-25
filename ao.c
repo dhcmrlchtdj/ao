@@ -27,21 +27,21 @@ task_t *init_task(env_t *env, bool add_range, ...) {
 		task->add_range = true;
 		va_list ap;
 		va_start(ap, add_range);
-		task->range_start = va_arg(ap, unsigned long);
-		task->range_stop = va_arg(ap, unsigned long);
+		task->range_start = va_arg(ap, off_t);
+		task->range_stop = va_arg(ap, off_t);
 		va_end(ap);
 	} else {
 		task->add_range = false;
 		task->range_start = 0;
 		task->range_stop = 0;
 	}
-	task->offset = task->range_start;
 	return task;
 }
 
 
 
 void free_task(task_t *task) {
+	shutdown(task->sockfd, SHUT_RDWR);
 	close(task->sockfd);
 	free_url(task->url);
 	free_request(task->request);

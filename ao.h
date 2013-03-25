@@ -45,7 +45,7 @@ struct env_t {
 	int task_num; // max threads
 	int fd; // file descripter
 	char filename[SHORT_STR];
-	unsigned long filesize;
+	off_t filesize;
 	char url[SHORT_STR];
 };
 
@@ -61,9 +61,8 @@ struct task_t {
 	request_t *request;
 	response_t *response;
 	bool add_range;
-	unsigned long range_start;
-	unsigned long range_stop;
-	unsigned long offset;
+	off_t range_start;
+	off_t range_stop;
 };
 
 // ... == unsigned long start, unsigned long stop

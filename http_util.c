@@ -71,6 +71,6 @@ void get_filename_by_path(env_t *env, char *path) {
 void get_filesize_by_range(env_t *env, char *range) {
 	char *pos;
 	pos = strchr(range, '/');
-	pos++; // move ti filesize
-	env->filesize = strtoul(pos, NULL, 0);
+	pos++; // move to filesize
+	env->filesize = atol(pos);
 }
