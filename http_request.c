@@ -19,7 +19,7 @@ void gen_basic_request_header(task_t *task) {
 	header_field_t *ptr;
 	char *buff = malloc(sizeof(char) * SHORT_STR);
 
-	sprintf(buff, "%s:%s", task->url->host, task->url->port);
+	snprintf(buff, SHORT_STR, "%s:%s", task->url->host, task->url->port);
 	task->request->hf = init_header_field("Host", buff);
 
 	ptr = task->request->hf;
@@ -29,7 +29,8 @@ void gen_basic_request_header(task_t *task) {
 	ptr->next = init_header_field("User-Agent", "ao/pre-alpha");
 
 	if (task->add_range) {
-		sprintf(buff, "bytes=%ld-%ld", task->range_start, task->range_stop);
+		snprintf(buff, SHORT_STR, "bytes=%ld-%ld",
+				task->range_start, task->range_stop);
 		ptr = ptr->next;
 		ptr->next = init_header_field("Range", buff);
 	}
@@ -51,7 +52,7 @@ void send_request(task_t *task) {
 		hf = hf->next;
 	}
 
-	sprintf(task->request->string, "GET %s HTTP/1.0\r\n%s\r\n",
+	snprintf(task->request->string, LONG_STR, "GET %s HTTP/1.0\r\n%s\r\n",
 			task->url->path, hf_string);
 	send_all(task->sockfd, task->request->string,
 			strlen(task->request->string));

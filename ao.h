@@ -72,7 +72,8 @@ void clear_task(task_t *task);
 
 //////////
 
-/* src_size not contain '\0' */
+//dest_size contains '\0'
+//src_size not contains '\0'
 char *dynamic_copy(char *src, size_t src_size);
 void static_copy(char *dest, size_t dest_size, char *src, size_t src_size);
 

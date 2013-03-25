@@ -58,8 +58,7 @@ void get_filename_by_path(env_t *env, char *path) {
 		// FIXME
 		stop = strchr(start, '?');
 		if (stop) {
-			// stop should back one step
-			static_copy(env->filename, SHORT_STR, start, (stop - 1) - start);
+			static_copy(env->filename, SHORT_STR, start, stop - start);
 		} else {
 			static_copy(env->filename, SHORT_STR, start, strlen(start));
 		}

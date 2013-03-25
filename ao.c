@@ -74,8 +74,9 @@ char *dynamic_copy(char *src, size_t src_size) {
 
 
 void static_copy(char *dest, size_t dest_size, char *src, size_t src_size) {
-	if (dest_size >= src_size + 1) {
-		memcpy(dest, src, src_size + 1);
+	if (dest_size > src_size) {
+		memcpy(dest, src, src_size);
+		dest[src_size] = '\0';
 	} else {
 		memcpy(dest, src, dest_size - 1);
 		dest[dest_size] = '\0';

@@ -8,8 +8,12 @@ void dl_prepare(env_t *env) {
 
 	conn_url(task);
 
-	if (env->filename[0] == '\0')
+	if (env->filename[0] == '\0') {
+		// not specified filename
 		get_filename_by_path(env, task->url->path);
+		// rename if file is existed
+		check_filename(env);
+	}
 	printf("[ao] filename: %s\n", env->filename);
 
 	char *val;
@@ -109,4 +113,27 @@ void *_dl_thread_routine(void *arg) {
 
 	free_task(task);
 	pthread_exit(NULL);
+}
+
+
+
+void check_filename(env_t *env) {
+	if (access(env->filename, F_OK) == 0) {
+		// file existed
+		int fix = 0;
+		char *format = "%s.%d";
+		char new_name[SHORT_STR];
+
+		while (fix < 100) {
+			snprintf(new_name, SHORT_STR, format, env->filename, fix++);
+			if (access(new_name, F_OK) != 0) {
+				static_copy(env->filename, SHORT_STR,
+						new_name, strlen(new_name));
+				return;
+			}
+		}
+
+		printf("please specify a filename\n");
+		exit(EXIT_FAILURE);
+	}
 }
