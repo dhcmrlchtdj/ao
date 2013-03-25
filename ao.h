@@ -14,8 +14,7 @@
 #include <sys/types.h>
 #include <netdb.h>
 #include <pthread.h>
-#include <signal.h>
-#include <setjmp.h>
+#include <time.h>
 
 ///////////////////
 
@@ -50,9 +49,7 @@ struct env_t {
 	char url[SHORT_STR];
 	bool support_range; // whether support range header
 	pthread_t main_thread;
-	off_t received;
 	pthread_mutex_t mutex;
-	pthread_cond_t cond;
 };
 
 env_t *init_env(void);

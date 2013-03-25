@@ -77,6 +77,7 @@ void dl_single_thread(env_t *env) {
 
 
 void dl_multi_thread(env_t *env) {
+	// create threads
 	pthread_t tids[env->task_num];
 	task_t *task;
 	int i;
@@ -90,15 +91,6 @@ void dl_multi_thread(env_t *env) {
 	}
 	task = init_task(env, true, stop, env->filesize);
 	pthread_create(&tids[i], NULL, _dl_thread_routine, task);
-
-	signal(SIGALRM, handle_alarm);
-	ualarm(1000, 100);
-	if (sigsetjmp(_dl_jmpbuf, 1) != 0) {
-		print_speed(env);
-	}
-	_dl_canjmp = 1;
-
-	/*pause()*/
 
 	for (i = 0; i < env->task_num; i++) {
 		pthread_join(tids[i], NULL);
@@ -118,6 +110,10 @@ void *_dl_thread_routine(void *arg) {
 		if (received == 0) break;
 		pwrite(task->env->fd, buff, received, task->range_start);
 		task->range_start += received;
+		if (pthread_mutex_trylock(&task->env->mutex) == 0) {
+			print_speed(task->env);
+			pthread_mutex_unlock(&task->env->mutex);
+		}
 	}
 
 	free_task(task);
@@ -145,12 +141,4 @@ void check_filename(env_t *env) {
 		printf("please specify a filename\n");
 		exit(EXIT_FAILURE);
 	}
-}
-
-
-
-void handle_alarm(int signo) {
-	if (_dl_canjmp == 0) return;
-	_dl_canjmp = 0;
-	siglongjmp(_dl_jmpbuf, 1);
 }
