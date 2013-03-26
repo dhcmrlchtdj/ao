@@ -11,12 +11,12 @@ int main(int argc, char *argv[]) {
 		opt_char = getopt(argc, argv, opt_string);
 
 		if (opt_char == -1) {
-			break; //解析结束
+			break; // all options got
 		} else if (opt_char == '?' || opt_char == 'h') {
-			print_usage(); // 错误选项 或 输出帮助
+			print_usage(); // print help
 			exit(EXIT_FAILURE);
 		} else if (opt_char == 'n') {
-			env->task_num = atoi(optarg); // 获取线程数
+			env->task_num = atoi(optarg); // how many threads used
 			if (env->task_num <= 0) {
 				print_usage();
 				exit(EXIT_FAILURE);
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	if (argc - optind != 1) { // 没有输入下载地址
+	if (argc - optind != 1) { // no url
 		print_usage();
 		exit(EXIT_FAILURE);
 	} else {
@@ -76,13 +76,14 @@ void print_progress_bar(env_t *env) {
 	static int left_min = 0;
 	static int left_sec = 0;
 	int left_time;
+
 	long delta = delta_time(&env->t1, &env->t2);
 	if (delta >= 500) {
-		speed = (file_size - env->last_size) * 1000 / delta;
+		speed = (file_size - env->last_size) * 1000 / delta; // in bytes
 		left_time = (env->filesize - file_size) / speed;
 		left_min = left_time / 60;
 		left_sec = left_time % 60;
-		speed /= 1024;
+		speed /= 1024; // convert to kib
 
 		env->last_size = file_size;
 		env->t1 = env->t2;

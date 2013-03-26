@@ -45,6 +45,7 @@ void gen_basic_request_header(task_t *task) {
 
 
 void send_request(task_t *task) {
+	// header field to string
 	char *hf_string = malloc(sizeof(char) * LONG_STR);
 	memset(hf_string, 0, sizeof(char) * LONG_STR);
 	header_field_t *hf = task->request->hf;
@@ -60,5 +61,6 @@ void send_request(task_t *task) {
 			task->url->path, hf_string);
 	send_all(task->sockfd, task->request->string,
 			strlen(task->request->string));
+
 	free(hf_string);
 }

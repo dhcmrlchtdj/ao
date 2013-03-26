@@ -12,7 +12,7 @@ void dl_prepare(env_t *env) {
 	if (env->filename[0] == '\0') {
 		// not specified filename
 		get_filename_by_path(env, task->url->path);
-		// rename if file is existed
+		// rename if file existed
 		check_filename(env);
 	}
 	printf("[ao] filename: %s\n", env->filename);
@@ -47,6 +47,7 @@ void dl_start(env_t *env) {
 
 	env->last_size = 0;
 	gettimeofday(&env->t1, NULL);
+
 	if (env->support_range) {
 		dl_multi_thread(env);
 	} else {
@@ -87,9 +88,11 @@ void dl_multi_thread(env_t *env) {
 	int i;
 	off_t block_size = env->filesize / env->task_num;
 	off_t start = 0, stop = 0;
+
 	for (i = 0; i < env->task_num - 1; i++) {
 		start = stop;
 		stop += block_size;
+
 		task = init_task(env, true, start, stop - 1);
 		pthread_create(&tids[i], NULL, _dl_thread_routine, task);
 	}
@@ -114,7 +117,9 @@ void *_dl_thread_routine(void *arg) {
 		if (received == 0) break;
 		pwrite(task->env->fd, buff, received, task->range_start);
 		task->range_start += received;
+
 		if (pthread_mutex_trylock(&task->env->mutex) == 0) {
+			// get mutex
 			gettimeofday(&task->env->t2, NULL);
 			print_progress_bar(task->env);
 			pthread_mutex_unlock(&task->env->mutex);

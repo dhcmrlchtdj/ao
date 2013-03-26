@@ -66,5 +66,6 @@ void parse_response_header(task_t *task) {
 
 		name = stop + 2; // move to next header name
 	}
+
 	free(hf_string);
 }

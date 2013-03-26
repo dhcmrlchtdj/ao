@@ -36,7 +36,6 @@ char *get_header(header_field_t *hf, char *name) {
 
 
 
-
 void _print_header_field(header_field_t *hf) {
 	while (hf) {
 		printf("%s: %s\n", hf->name, hf->value);

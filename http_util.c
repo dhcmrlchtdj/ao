@@ -21,19 +21,20 @@ void conn_url(task_t *task) {
 
 		status = task->response->status[0];
 		if (status == '2') {
-			break;
+			break; // connection ok.
 		} else if (status != '3') {
 			fprintf(stderr, "[ao] conn url error. status is %c\n", status);
 			printf("%s%s", task->request->string, task->response->string);
 			exit(EXIT_FAILURE);
 		} else if (redirection > MAX_REDIRECTION) {
 			fprintf(stderr, "[ao] redirection too many times\n");
+			printf("%s%s", task->request->string, task->response->string);
 			exit(EXIT_FAILURE);
 		} else {
 			val = get_header(task->response->hf, "Location");
 			if (val == NULL) {
 				fprintf(stderr, "[ao] redirection error. "
-						"not found Location\n");
+						"Location not found\n");
 				exit(EXIT_FAILURE);
 			} else {
 				redirection++;
@@ -57,6 +58,7 @@ void get_filename_by_path(env_t *env, char *path) {
 		// FIXME
 		stop = strchr(start, '?');
 		if (stop) {
+			// str between '/' and '?'
 			static_copy(env->filename, SHORT_STR, start, stop - start);
 		} else {
 			static_copy(env->filename, SHORT_STR, start, strlen(start));
@@ -67,8 +69,6 @@ void get_filename_by_path(env_t *env, char *path) {
 
 
 void get_filesize_by_range(env_t *env, char *range) {
-	char *pos;
-	pos = strchr(range, '/');
-	pos++; // move to filesize
-	env->filesize = atol(pos);
+	char *pos = strchr(range, '/');
+	env->filesize = atol(++pos); // move to filesize
 }

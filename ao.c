@@ -4,7 +4,7 @@
 env_t *init_env(void) {
 	env_t *env = malloc(sizeof(env_t));
 	memset(env, 0, sizeof(env_t));
-	env->task_num = 6;
+	env->task_num = THREAD_NUM;
 	pthread_mutex_init(&env->mutex, NULL);
 	return env;
 }
@@ -33,8 +33,6 @@ task_t *init_task(env_t *env, bool add_range, ...) {
 		va_end(ap);
 	} else {
 		task->add_range = false;
-		task->range_start = 0;
-		task->range_stop = 0;
 	}
 	return task;
 }
@@ -91,4 +89,3 @@ long delta_time(struct timeval *t1, struct timeval *t2) {
 	long usec = t2->tv_usec - t1->tv_usec;
 	return ((sec * 1000000 + usec) / 1000);
 }
-
