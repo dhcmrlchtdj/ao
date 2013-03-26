@@ -21,7 +21,7 @@ void dl_prepare(env_t *env) {
 	if (val == NULL) {
 		// not support range
 		env->support_range = false;
-		printf("[ao] ! not support 'Range' header.\n");
+		printf("[ao] ! not support multithread download.\n");
 		val = get_header(task->response->hf, "Content-Length");
 		if (val == NULL) {
 			env->filesize = 0;
@@ -42,7 +42,7 @@ void dl_prepare(env_t *env) {
 
 
 void dl_start(env_t *env) {
-	printf("[ao] downloading...\n");
+	printf("[ao] start download.\n");
 	env->fd = open(env->filename, O_WRONLY | O_CREAT, 0644);
 
 	if (env->support_range) {
@@ -68,7 +68,7 @@ void dl_single_thread(env_t *env) {
 		received = _recv(task->sockfd, buff, RECV_LEN);
 		if (received == 0) break;
 		write(env->fd, buff, received);
-		printf("%ld ", received);
+		print_progress_bar(env);
 	}
 
 	free_task(task);
@@ -79,6 +79,7 @@ void dl_single_thread(env_t *env) {
 void dl_multi_thread(env_t *env) {
 	// create threads
 	pthread_t tids[env->task_num];
+
 	task_t *task;
 	int i;
 	off_t block_size = env->filesize / env->task_num;
@@ -111,7 +112,7 @@ void *_dl_thread_routine(void *arg) {
 		pwrite(task->env->fd, buff, received, task->range_start);
 		task->range_start += received;
 		if (pthread_mutex_trylock(&task->env->mutex) == 0) {
-			print_speed(task->env);
+			print_progress_bar(task->env);
 			pthread_mutex_unlock(&task->env->mutex);
 		}
 	}

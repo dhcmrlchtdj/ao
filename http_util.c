@@ -23,7 +23,7 @@ void conn_url(task_t *task) {
 		if (status == '2') {
 			break;
 		} else if (status != '3') {
-			fprintf(stderr, "conn url error. status is %c\n", status);
+			fprintf(stderr, "[ao] conn url error. status is %c\n", status);
 			printf("%s%s", task->request->string, task->response->string);
 			exit(EXIT_FAILURE);
 		} else if (redirection > MAX_REDIRECTION) {
@@ -39,8 +39,7 @@ void conn_url(task_t *task) {
 				redirection++;
 				url = dynamic_copy(val, strlen(val));
 				clear_task(task);
-				fprintf(stdout, "[ao] redirect to '%s', %d\n",
-						url, redirection);
+				//printf("[ao] redirect to '%s', %d\n", url, redirection);
 			}
 		}
 	}

@@ -57,34 +57,44 @@ void print_usage(void) {
 
 
 
-void print_speed(env_t *env) {
-	/*static off_t last_size;*/
-	/*static time_t last_time;*/
+void print_progress_bar(env_t *env) {
+	if (env->filesize == 0) {
+		// for unknown filesize
+		printf("\b.#");
+		fflush(stdout);
+		return;
+	}
 
 	struct stat file_stat;
-	fstat(env->fd, &file_stat);
-	// st_blocks * 512 approximates the actual file size
-	off_t file_size = file_stat.st_blocks * 512;
-	/*time_t now_time = time(NULL);*/
-	/*double speed = (file_size - last_size) / difftime(now_time, last_time);*/
-	/*double remain = (env->filesize - file_size) / speed;*/
+	off_t file_size;
+	int pos, percent;
+	char *speed=NULL, *left_time=NULL;
 
-	int pos = 100;
-	while (pos-- > 0) putchar('\b');
-	int percent = file_size * 100 / env->filesize;
+	static off_t last_size = 0;
+	static time_t last_time;
+	time(&last_time);
+
+	// `st_blocks * 512` approximates the actual file size
+	fstat(env->fd, &file_stat);
+	file_size = file_stat.st_blocks * 512;
+
+	// back to start of the progress bar
+	pos = 0;
+	while (pos++ < 200) putchar('\b');
+
+	// file_size maybe large than actual file size
+	percent = file_size * 100 / env->filesize;
+	if (percent > 100) percent = 100;
 	printf("[%3d%%] [", percent);
+
+	pos = 0;
 	percent /= 2;
 	while (pos++ < percent) putchar('.');
-	if (pos++ < 51) {
-		putchar('#');
-		while (pos++ < 51)
-			putchar(' ');
-	}
-	/*printf("] [speed %f] [time %f]\n", speed, remain);*/
-	printf("] [speed] [time]");
+	(pos == 51) ? putchar('.') : putchar('#');
+
+	printf("%*c [%10ld] [%s]\n",  52 - pos, ']', file_size-last_size, left_time);
 
 	fflush(stdout);
-	/*last_size = file_size;*/
-	/*last_time = now_time;*/
-}
 
+	last_size = file_size;
+}

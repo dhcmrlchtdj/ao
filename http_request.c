@@ -19,8 +19,12 @@ void gen_basic_request_header(task_t *task) {
 	header_field_t *ptr;
 	char *buff = malloc(sizeof(char) * SHORT_STR);
 
-	snprintf(buff, SHORT_STR, "%s:%s", task->url->host, task->url->port);
-	task->request->hf = init_header_field("Host", buff);
+	if (strcmp(task->url->port, "80") == 0) {
+		task->request->hf = init_header_field("Host", task->url->host);
+	} else {
+		snprintf(buff, SHORT_STR, "%s:%s", task->url->host, task->url->port);
+		task->request->hf = init_header_field("Host", buff);
+	}
 
 	ptr = task->request->hf;
 	ptr->next = init_header_field("Connection", "close");

@@ -16,6 +16,7 @@
 #include <pthread.h>
 #include <time.h>
 
+
 ///////////////////
 
 #define SHORT_STR 1024
@@ -48,7 +49,6 @@ struct env_t {
 	char filename[SHORT_STR];
 	char url[SHORT_STR];
 	bool support_range; // whether support range header
-	pthread_t main_thread;
 	pthread_mutex_t mutex;
 };
 
