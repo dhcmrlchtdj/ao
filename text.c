@@ -68,15 +68,23 @@ void print_progress_bar(env_t *env) {
 	struct stat file_stat;
 	off_t file_size;
 	int pos, percent;
-	char *speed=NULL, *left_time=NULL;
-
-	static off_t last_size = 0;
-	static time_t last_time;
-	time(&last_time);
+	
+	static int speed = 0;
+	static int left_time = 0;
+	long delta = delta_time(&env->t1, &env->t2);
 
 	// `st_blocks * 512` approximates the actual file size
 	fstat(env->fd, &file_stat);
 	file_size = file_stat.st_blocks * 512;
+
+	if (delta >= 500) {
+		speed = (file_size - env->last_size) * 1000 / delta;
+		left_time = (env->filesize - file_size) / speed + 1;
+		speed /= 1024;
+
+		env->last_size = file_size;
+		env->t1 = env->t2;
+	}
 
 	// back to start of the progress bar
 	pos = 0;
@@ -92,9 +100,7 @@ void print_progress_bar(env_t *env) {
 	while (pos++ < percent) putchar('.');
 	(pos == 51) ? putchar('.') : putchar('#');
 
-	printf("%*c [%10ld] [%s]\n",  52 - pos, ']', file_size-last_size, left_time);
+	printf("%*c [ %dKiB/s] [ %2ds]", 52 - pos, ']', speed, left_time);
 
 	fflush(stdout);
-
-	last_size = file_size;
 }

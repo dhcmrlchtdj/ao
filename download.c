@@ -45,6 +45,8 @@ void dl_start(env_t *env) {
 	printf("[ao] start download.\n");
 	env->fd = open(env->filename, O_WRONLY | O_CREAT, 0644);
 
+	env->last_size = 0;
+	gettimeofday(&env->t1, NULL);
 	if (env->support_range) {
 		dl_multi_thread(env);
 	} else {
@@ -68,6 +70,7 @@ void dl_single_thread(env_t *env) {
 		received = _recv(task->sockfd, buff, RECV_LEN);
 		if (received == 0) break;
 		write(env->fd, buff, received);
+		gettimeofday(&env->t2, NULL);
 		print_progress_bar(env);
 	}
 
@@ -112,6 +115,7 @@ void *_dl_thread_routine(void *arg) {
 		pwrite(task->env->fd, buff, received, task->range_start);
 		task->range_start += received;
 		if (pthread_mutex_trylock(&task->env->mutex) == 0) {
+			gettimeofday(&task->env->t2, NULL);
 			print_progress_bar(task->env);
 			pthread_mutex_unlock(&task->env->mutex);
 		}

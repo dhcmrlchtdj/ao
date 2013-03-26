@@ -14,8 +14,7 @@
 #include <sys/types.h>
 #include <netdb.h>
 #include <pthread.h>
-#include <time.h>
-
+#include <sys/time.h>
 
 ///////////////////
 
@@ -50,6 +49,8 @@ struct env_t {
 	char url[SHORT_STR];
 	bool support_range; // whether support range header
 	pthread_mutex_t mutex;
+	struct timeval t1, t2;
+	off_t last_size;
 };
 
 env_t *init_env(void);
@@ -80,4 +81,7 @@ void clear_task(task_t *task);
 char *dynamic_copy(char *src, size_t src_size);
 void static_copy(char *dest, size_t dest_size, char *src, size_t src_size);
 
+// return ms
+// t2 > t1
+long delta_time(struct timeval *t1, struct timeval *t2);
 #endif

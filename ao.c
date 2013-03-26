@@ -4,7 +4,6 @@
 env_t *init_env(void) {
 	env_t *env = malloc(sizeof(env_t));
 	memset(env, 0, sizeof(env_t));
-	env->filesize = 0;
 	env->task_num = 6;
 	pthread_mutex_init(&env->mutex, NULL);
 	return env;
@@ -84,3 +83,12 @@ void static_copy(char *dest, size_t dest_size, char *src, size_t src_size) {
 		dest[dest_size] = '\0';
 	}
 }
+
+
+
+long delta_time(struct timeval *t1, struct timeval *t2) {
+	long sec = t2->tv_sec - t1->tv_sec;
+	long usec = t2->tv_usec - t1->tv_usec;
+	return ((sec * 1000000 + usec) / 1000);
+}
+
