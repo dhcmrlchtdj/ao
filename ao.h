@@ -15,6 +15,7 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <sys/time.h>
+#include <signal.h>
 
 ///////////////////
 
@@ -54,7 +55,7 @@ struct env_t {
 	char url[SHORT_STR];
 };
 
-env_t *init_env(void);
+void init_env(env_t *env);
 void free_env(env_t *env);
 
 
@@ -64,14 +65,13 @@ struct task_t {
 	int sockfd;
 	off_t range_start;
 	off_t range_stop;
-	env_t *env;
 	url_t *url;
 	request_t *request;
 	response_t *response;
 };
 
 // ... == off_t start, off_t stop
-task_t *init_task(env_t *env, bool add_range, ...);
+task_t *init_task(bool add_range, ...);
 void free_task(task_t *task);
 void clear_task(task_t *task);
 
@@ -84,4 +84,9 @@ void static_copy(char *dest, size_t dest_size, char *src, size_t src_size);
 
 // return ms. t2 must greater than t1.
 long delta_time(struct timeval *t1, struct timeval *t2);
+
+//////////
+
+env_t env;
+
 #endif

@@ -4,7 +4,7 @@
 void conn_url(task_t *task) {
 	int status;
 	short redirection = 0;
-	char *url = dynamic_copy(task->env->url, strlen(task->env->url));
+	char *url = dynamic_copy(env.url, strlen(env.url));
 	char *val;
 	
 	while (1) {
@@ -48,27 +48,27 @@ void conn_url(task_t *task) {
 
 
 
-void get_filename_by_path(env_t *env, char *path) {
+void get_filename_by_path(char *path) {
 	char *start, *stop;
 	start = strrchr(path, '/');
 	if (start == NULL || *++start == '\0') {
 		// use "default" if not filename
-		static_copy(env->filename, SHORT_STR, "default", 7);
+		static_copy(env.filename, SHORT_STR, "default", 7);
 	} else {
 		// FIXME
 		stop = strchr(start, '?');
 		if (stop) {
 			// str between '/' and '?'
-			static_copy(env->filename, SHORT_STR, start, stop - start);
+			static_copy(env.filename, SHORT_STR, start, stop - start);
 		} else {
-			static_copy(env->filename, SHORT_STR, start, strlen(start));
+			static_copy(env.filename, SHORT_STR, start, strlen(start));
 		}
 	}
 }
 
 
 
-void get_filesize_by_range(env_t *env, char *range) {
+void get_filesize_by_range(char *range) {
 	char *pos = strchr(range, '/');
-	env->filesize = atol(++pos); // move to filesize
+	env.filesize = atol(++pos); // move to filesize
 }

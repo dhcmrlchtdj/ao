@@ -1,7 +1,8 @@
 #include "ao.h"
 
+
 int main(int argc, char *argv[]) {
-	env_t *env = init_env();
+	init_env(&env);
 
 	opterr = 0; // do not print error message
 	char *opt_string = "f:F:n:o:h";
@@ -16,13 +17,13 @@ int main(int argc, char *argv[]) {
 			print_usage(); // print help
 			exit(EXIT_FAILURE);
 		} else if (opt_char == 'n') {
-			env->task_num = atoi(optarg); // how many threads used
-			if (env->task_num <= 0) {
+			env.task_num = atoi(optarg); // how many threads used
+			if (env.task_num <= 0) {
 				print_usage();
 				exit(EXIT_FAILURE);
 			}
 		} else if (opt_char == 'o') {
-			static_copy(env->filename, SHORT_STR, optarg, strlen(optarg));
+			static_copy(env.filename, SHORT_STR, optarg, strlen(optarg));
 		} else {
 			// (opt_char == 'f' || opt_char == 'F')
 			print_usage();
@@ -34,12 +35,12 @@ int main(int argc, char *argv[]) {
 		print_usage();
 		exit(EXIT_FAILURE);
 	} else {
-		static_copy(env->url, SHORT_STR, argv[optind], strlen(argv[optind]));
+		static_copy(env.url, SHORT_STR, argv[optind], strlen(argv[optind]));
 	}
 
-	dl_prepare(env);
-	dl_start(env);
-	free_env(env);
+	dl_prepare();
+	dl_start();
+	free_env(&env);
 
 	return 0;
 }
@@ -57,8 +58,8 @@ void print_usage(void) {
 
 
 
-void print_progress_bar(env_t *env) {
-	if (env->filesize == 0) {
+void print_progress_bar() {
+	if (env.filesize == 0) {
 		// for unknown filesize
 		printf("\b.#");
 		fflush(stdout);
@@ -68,7 +69,7 @@ void print_progress_bar(env_t *env) {
 	// `st_blocks * 512` approximates the actual file size
 	struct stat file_stat;
 	off_t file_size;
-	fstat(env->fd, &file_stat);
+	fstat(env.fd, &file_stat);
 	file_size = file_stat.st_blocks * 512;
 
 	// speed and left time
@@ -77,16 +78,16 @@ void print_progress_bar(env_t *env) {
 	static int left_sec = 0;
 	int left_time;
 
-	long delta = delta_time(&env->t1, &env->t2);
+	long delta = delta_time(&env.t1, &env.t2);
 	if (delta >= 500) {
-		speed = (file_size - env->last_size) * 1000 / delta; // in bytes
-		left_time = (env->filesize - file_size) / speed;
+		speed = (file_size - env.last_size) * 1000 / delta; // in bytes
+		left_time = (env.filesize - file_size) / speed;
 		left_min = left_time / 60;
 		left_sec = left_time % 60;
 		speed /= 1024; // convert to kib
 
-		env->last_size = file_size;
-		env->t1 = env->t2;
+		env.last_size = file_size;
+		env.t1 = env.t2;
 	}
 
 	// back to start of the progress bar
@@ -95,7 +96,7 @@ void print_progress_bar(env_t *env) {
 	while (pos++ < 200) putchar('\b');
 
 	// file_size maybe large than actual file size
-	percent = file_size * 100 / env->filesize;
+	percent = file_size * 100 / env.filesize;
 	if (percent > 100) percent = 100;
 	printf("[%3d%%] [", percent);
 
