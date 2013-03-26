@@ -1,22 +1,39 @@
 #include "ao.h"
 
 
-void init_env(env_t *env) {
+void initial_env(env_t *env) {
 	memset(env, 0, sizeof(env_t));
+	env->has_log = false;
 	env->task_num = THREAD_NUM;
 	pthread_mutex_init(&env->mutex, NULL);
+	pthread_rwlock_init(&env->rwlock, NULL);
 }
 
 
 
-void free_env(env_t *env) {
+void update_log(env_t *env) {
+	pthread_mutex_init(&env->mutex, NULL);
+	pthread_rwlock_init(&env->rwlock, NULL);
+}
+
+
+
+void destroy_env(env_t *env) {
 	pthread_mutex_destroy(&env->mutex);
+	pthread_rwlock_destroy(&env->rwlock);
+	task_t *ptr = env->task_list;
+	while (ptr) {
+		env->task_list = ptr->next;
+		free_task(ptr);
+		ptr = env->task_list;
+	}
 }
 
 
 
 task_t *init_task(bool add_range, ...) {
 	task_t *task = malloc(sizeof(task_t));
+	task->next = NULL;
 	task->url = init_url();
 	task->request = init_request();
 	task->response = init_response();

@@ -45,18 +45,23 @@ typedef struct url_t url_t;
 
 struct env_t {
 	bool support_range; // whether support range header
+	bool has_log;
 	short task_num; // threads num
 	int fd; // file descripter
-	off_t filesize;
+	off_t file_size;
 	off_t last_size; // used to calculate speed
 	struct timeval t1, t2; // used to calculate speed
 	pthread_mutex_t mutex; // only one thread is write progress bar
-	char filename[SHORT_STR];
+	pthread_rwlock_t rwlock; // only one thread is write progress bar
+	char file_name[SHORT_STR];
+	char log_name[SHORT_STR];
 	char url[SHORT_STR];
+	task_t *task_list;
 };
 
-void init_env(env_t *env);
-void free_env(env_t *env);
+void initial_env(env_t *env);
+void update_log(env_t *env);
+void destroy_env(env_t *env);
 
 
 
@@ -68,6 +73,7 @@ struct task_t {
 	url_t *url;
 	request_t *request;
 	response_t *response;
+	task_t *next;
 };
 
 // ... == off_t start, off_t stop

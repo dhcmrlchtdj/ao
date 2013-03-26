@@ -53,15 +53,15 @@ void get_filename_by_path(char *path) {
 	start = strrchr(path, '/');
 	if (start == NULL || *++start == '\0') {
 		// use "default" if not filename
-		static_copy(env.filename, SHORT_STR, "default", 7);
+		static_copy(env.file_name, SHORT_STR, "default", 7);
 	} else {
 		// FIXME
 		stop = strchr(start, '?');
 		if (stop) {
 			// str between '/' and '?'
-			static_copy(env.filename, SHORT_STR, start, stop - start);
+			static_copy(env.file_name, SHORT_STR, start, stop - start);
 		} else {
-			static_copy(env.filename, SHORT_STR, start, strlen(start));
+			static_copy(env.file_name, SHORT_STR, start, strlen(start));
 		}
 	}
 }
@@ -70,5 +70,5 @@ void get_filename_by_path(char *path) {
 
 void get_filesize_by_range(char *range) {
 	char *pos = strchr(range, '/');
-	env.filesize = atol(++pos); // move to filesize
+	env.file_size = atol(++pos); // move to filesize
 }

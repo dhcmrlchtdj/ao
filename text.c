@@ -2,7 +2,7 @@
 
 
 int main(int argc, char *argv[]) {
-	init_env(&env);
+	initial_env(&env);
 
 	opterr = 0; // do not print error message
 	char *opt_string = "f:F:n:o:h";
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
 				exit(EXIT_FAILURE);
 			}
 		} else if (opt_char == 'o') {
-			static_copy(env.filename, SHORT_STR, optarg, strlen(optarg));
+			static_copy(env.file_name, SHORT_STR, optarg, strlen(optarg));
 		} else {
 			// (opt_char == 'f' || opt_char == 'F')
 			print_usage();
@@ -40,7 +40,8 @@ int main(int argc, char *argv[]) {
 
 	dl_prepare();
 	dl_start();
-	free_env(&env);
+	
+	destroy_env(&env);
 
 	return 0;
 }
@@ -59,7 +60,7 @@ void print_usage(void) {
 
 
 void print_progress_bar() {
-	if (env.filesize == 0) {
+	if (env.file_size == 0) {
 		// for unknown filesize
 		printf("\b.#");
 		fflush(stdout);
@@ -81,7 +82,7 @@ void print_progress_bar() {
 	long delta = delta_time(&env.t1, &env.t2);
 	if (delta >= 500) {
 		speed = (file_size - env.last_size) * 1000 / delta; // in bytes
-		left_time = (env.filesize - file_size) / speed;
+		left_time = (env.file_size - file_size) / speed;
 		left_min = left_time / 60;
 		left_sec = left_time % 60;
 		speed /= 1024; // convert to kib
@@ -96,7 +97,7 @@ void print_progress_bar() {
 	while (pos++ < 200) putchar('\b');
 
 	// file_size maybe large than actual file size
-	percent = file_size * 100 / env.filesize;
+	percent = file_size * 100 / env.file_size;
 	if (percent > 100) percent = 100;
 	printf("[%3d%%] [", percent);
 
