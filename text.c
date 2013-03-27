@@ -74,6 +74,8 @@ void _print_known_size(void) {
 	off_t file_size;
 	fstat(env.fd, &file_stat);
 	file_size = file_stat.st_blocks * 512;
+	// file_size maybe large than actual file size
+	if (file_size > env.file_size) file_size = env.file_size;
 
 	// speed and left time
 	static int speed = 0;
@@ -84,6 +86,7 @@ void _print_known_size(void) {
 	long delta = delta_time(&env.t1, &env.t2);
 	if (delta >= 500) {
 		speed = (file_size - env.last_size) * 1000 / delta; // in bytes
+		if (speed == 0) speed = 1;
 		left_time = (env.file_size - file_size) / speed;
 		left_min = left_time / 60;
 		left_sec = left_time % 60;
@@ -98,9 +101,7 @@ void _print_known_size(void) {
 	pos = 0;
 	while (pos++ < 200) putchar('\b');
 
-	// file_size maybe large than actual file size
 	percent = file_size * 100 / env.file_size;
-	if (percent > 100) percent = 100;
 	printf("[%3d%%] [", percent);
 
 	pos = 0;
