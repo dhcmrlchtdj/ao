@@ -71,9 +71,8 @@ void dl_multi_thread(void) {
 	signal(SIGTERM, _handle_exit);
 
 	// create threads
-	pthread_t tids[env.task_num];
-
 	int i;
+	pthread_t tids[env.task_num];
 	off_t block_size = env.file_size / env.task_num;
 	off_t start = 0, stop = 0;
 
@@ -82,8 +81,14 @@ void dl_multi_thread(void) {
 		pthread_create(&tids[i], NULL, _dl_thread_routine, ptr);
 		ptr = ptr->next;
 	}
+
+	// wait for download
 	for (i = 0; i < env.task_num; i++)
 		pthread_join(tids[i], NULL);
+
+	// remove log
+	if (env.has_log)
+		unlink(env.log_name);
 }
 
 
