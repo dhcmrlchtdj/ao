@@ -73,8 +73,6 @@ void dl_multi_thread(void) {
 	// create threads
 	int i;
 	pthread_t tids[env.task_num];
-	off_t block_size = env.file_size / env.task_num;
-	off_t start = 0, stop = 0;
 
 	task_t *ptr = env.task_list;
 	for (i = 0; i < env.task_num; i++) {
@@ -141,6 +139,7 @@ void _dl_check_file(void) {
 			static_copy(env.file_name, SHORT_STR, new_name, strlen(new_name));
 			return;
 		} else {
+			// test next name
 			snprintf(new_name, SHORT_STR, file_format, env.file_name, fix++);
 		}
 	}
@@ -150,12 +149,13 @@ void _dl_check_file(void) {
 
 void _handle_exit(int no) {
 	printf("\nreceive signal: %d\n", no);
-	if (env.support_range) {
-		pthread_rwlock_wrlock(&env.rwlock);
-		_dl_save_log();
-	}
+
+	pthread_rwlock_wrlock(&env.rwlock);
+	_dl_save_log();
+
 	close(env.fd);
-	destroy_env(&env);
+	destroy_env(&env); // FIXME how to deal with the rwlock?
+
 	exit(EXIT_SUCCESS);
 }
 
@@ -163,9 +163,13 @@ void _handle_exit(int no) {
 
 void _dl_save_log(void) {
 	printf("[ao] log saved.\n");
+
+	env.has_log = true;
+
 	FILE *fp = fopen(env.log_name, "wb");
 
 	fwrite(&env, sizeof(env_t), 1, fp);
+
 	while (env.task_list) {
 		fwrite(env.task_list, sizeof(task_t), 1, fp);
 		env.task_list = env.task_list->next;
@@ -177,7 +181,8 @@ void _dl_save_log(void) {
 
 
 void _dl_read_log(void) {
-	FILE *fp = fopen(env.log_name, "wb");
+	FILE *fp = fopen(env.log_name, "rb");
+
 	fread(&env, sizeof(env_t), 1, fp);
 	update_log(&env);
 
@@ -186,7 +191,7 @@ void _dl_read_log(void) {
 	task_t **ptr = &env.task_list;
 
 	for (int i = 0; i < env.task_num; i++) {
-		fread(ptr, sizeof(task_t), 1, fp);
+		fread(*ptr, sizeof(task_t), 1, fp);
 		(*ptr)->next = malloc(sizeof(task_t));
 		ptr = &(*ptr)->next;
 	}

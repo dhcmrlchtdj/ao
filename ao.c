@@ -12,6 +12,7 @@ void initial_env(env_t *env) {
 
 
 void update_log(env_t *env) {
+	env->task_list = NULL;
 	pthread_mutex_init(&env->mutex, NULL);
 	pthread_rwlock_init(&env->rwlock, NULL);
 }
