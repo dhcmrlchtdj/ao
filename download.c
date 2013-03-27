@@ -65,10 +65,14 @@ void dl_single_thread(void) {
 
 
 void dl_multi_thread(void) {
-	signal(SIGINT, _handle_exit);
-	signal(SIGHUP, _handle_exit);
-	signal(SIGQUIT, _handle_exit);
-	signal(SIGTERM, _handle_exit);
+	struct sigaction act;
+	sigemptyset(&act.sa_mask);
+	act.sa_handler = _handle_exit;
+	act.sa_flags = 0;
+	sigaction(SIGINT, &act, NULL);
+	sigaction(SIGHUP, &act, NULL);
+	sigaction(SIGQUIT, &act, NULL);
+	sigaction(SIGTERM, &act, NULL);
 
 	// initial mutex and rwlock
 	pthread_mutex_init(&env.mutex, NULL);
@@ -155,30 +159,35 @@ void _dl_check_file(void) {
 
 
 void _handle_exit(int no) {
-	printf("\nreceive signal: %d\n", no);
-
+	// get rwlock, stop recv data
 	pthread_rwlock_wrlock(&env.rwlock);
+
 	_dl_save_log();
 
 	close(env.fd);
-
+	task_t *ptr = env.task_list;
+	while (ptr) {
+		close(ptr->sockfd);
+		ptr = ptr->next;
+	}
 	exit(EXIT_SUCCESS);
 }
 
 
 
 void _dl_save_log(void) {
-	printf("[ao] log saved.\n");
+	printf("\n[ao] log saved.\n");
 
 	env.has_log = true;
 
 	FILE *fp = fopen(env.log_name, "wb");
 
+	// write env and tasks
 	fwrite(&env, sizeof(env_t), 1, fp);
-
-	while (env.task_list) {
-		fwrite(env.task_list, sizeof(task_t), 1, fp);
-		env.task_list = env.task_list->next;
+	task_t *ptr = env.task_list;
+	while (ptr) {
+		fwrite(ptr, sizeof(task_t), 1, fp);
+		ptr = ptr->next;
 	}
 
 	fclose(fp);
@@ -197,7 +206,7 @@ void _dl_read_log(void) {
 
 	for (int i = 0; i < env.task_num; i++) {
 		fread(*ptr, sizeof(task_t), 1, fp);
-		update_task(*ptr);
+		update_task(*ptr); // allocate memory for url_t request_t response_t
 		(*ptr)->next = malloc(sizeof(task_t));
 		ptr = &(*ptr)->next;
 	}
