@@ -70,10 +70,13 @@ void dl_multi_thread(void) {
 	signal(SIGQUIT, _handle_exit);
 	signal(SIGTERM, _handle_exit);
 
+	// initial mutex and rwlock
+	pthread_mutex_init(&env.mutex, NULL);
+	pthread_rwlock_init(&env.rwlock, NULL);
+
 	// create threads
 	int i;
 	pthread_t tids[env.task_num];
-
 	task_t *ptr = env.task_list;
 	for (i = 0; i < env.task_num; i++) {
 		pthread_create(&tids[i], NULL, _dl_thread_routine, ptr);
@@ -83,6 +86,10 @@ void dl_multi_thread(void) {
 	// wait for download
 	for (i = 0; i < env.task_num; i++)
 		pthread_join(tids[i], NULL);
+
+	// destroy mutex and rwlock
+	pthread_mutex_destroy(&env.mutex);
+	pthread_rwlock_destroy(&env.rwlock);
 
 	// remove log
 	if (env.has_log)
@@ -154,7 +161,6 @@ void _handle_exit(int no) {
 	_dl_save_log();
 
 	close(env.fd);
-	destroy_env(&env); // FIXME how to deal with the rwlock?
 
 	exit(EXIT_SUCCESS);
 }
@@ -184,7 +190,6 @@ void _dl_read_log(void) {
 	FILE *fp = fopen(env.log_name, "rb");
 
 	fread(&env, sizeof(env_t), 1, fp);
-	update_log(&env);
 
 	// create task
 	env.task_list = malloc(sizeof(task_t));

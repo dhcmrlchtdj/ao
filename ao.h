@@ -60,9 +60,6 @@ struct env_t {
 };
 
 void initial_env(env_t *env);
-void update_log(env_t *env);
-void destroy_env(env_t *env);
-
 
 
 struct task_t {

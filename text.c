@@ -40,8 +40,6 @@ int main(int argc, char *argv[]) {
 
 	dl_prepare();
 	dl_start();
-	
-	destroy_env(&env);
 
 	return 0;
 }
