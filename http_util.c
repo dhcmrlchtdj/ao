@@ -6,7 +6,7 @@ void conn_url(task_t *task) {
 	short redirection = 0;
 	char *url = dynamic_copy(env.url, strlen(env.url));
 	char *val;
-	
+
 	while (1) {
 		parse_url(task, url);
 		free(url);

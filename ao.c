@@ -51,6 +51,12 @@ task_t *init_task(bool add_range, ...) {
 	return task;
 }
 
+void update_task(task_t *task) {
+	task->next = NULL;
+	task->url = init_url();
+	task->request = init_request();
+	task->response = init_response();
+}
 
 
 void free_task(task_t *task) {

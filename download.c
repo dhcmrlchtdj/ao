@@ -192,6 +192,7 @@ void _dl_read_log(void) {
 
 	for (int i = 0; i < env.task_num; i++) {
 		fread(*ptr, sizeof(task_t), 1, fp);
+		update_task(*ptr);
 		(*ptr)->next = malloc(sizeof(task_t));
 		ptr = &(*ptr)->next;
 	}

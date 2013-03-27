@@ -78,6 +78,7 @@ struct task_t {
 
 // ... == off_t start, off_t stop
 task_t *init_task(bool add_range, ...);
+void update_task(task_t *task);
 void free_task(task_t *task);
 void clear_task(task_t *task);
 

@@ -20,6 +20,7 @@ void parse_url(task_t *task, char *str) {
 
 	int cnt = sscanf(str, with_port, task->url->host,
 			task->url->port, task->url->path);
+
 	if (cnt != 3) { // url without port
 		cnt = sscanf(str, no_port, task->url->host, task->url->path);
 		if (cnt != 2) {
