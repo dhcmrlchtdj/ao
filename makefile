@@ -1,16 +1,14 @@
-CC = clang -O0 -g -pthread
+CC = clang
+CFLAGS = -O0 -g
+LDFLAGS = -lpthread
+FLAGS = $(CFLAGS) $(LDFLAGS)
 
-.PHONY: clean
+source = text.o\
+		 utils.o
 
-ao: ao.o \
-	download.o \
-	http_header.o \
-	http_request.o \
-	http_response.o \
-	http_util.o \
-	text.o \
-	transport.o \
-	url.o \
+ao: $(source)
+	$(CC) $(FLAGS) $(source) -o ao
 
+.PHONY : clean
 clean:
-	-rm *.o ao
+	-rm $(source) ao
