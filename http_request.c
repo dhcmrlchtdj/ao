@@ -4,7 +4,7 @@ request_t *new_request(url_t *url) {
 	request_t *new = malloc(sizeof(request_t));
 	assert(new != NULL);
 	new->url = url;
-	new->hf = NULL;
+	_gen_basic_header(new);
 	return new;
 }
 
@@ -17,37 +17,7 @@ void del_request(request_t *request) {
 
 
 
-// convert request_t to string
-char *request2str(request_t *request) {
-	size_t size = sizeof(char) * LONG_STR;
-
-	char *hf_string = malloc(size);
-	assert(hf_string != NULL);
-	memset(hf_string, 0, size);
-
-	header_field_t *hf = request->hf;
-	while (hf) {
-		strcat(hf_string, hf->name);
-		strcat(hf_string, ": ");
-		strcat(hf_string, hf->value);
-		strcat(hf_string, "\r\n");
-		hf = hf->next;
-	}
-
-	char *str = malloc(size);
-	assert(str != NULL);
-	memset(hf_string, 0, size);
-
-	snprintf(str, LONG_STR, "GET %s HTTP/1.0\r\n%s\r\n",
-			request->url->path, hf_string);
-
-	free(hf_string);
-	return str;
-}
-
-
-
-void gen_basic_request_header(request_t *request) {
+void _gen_basic_header(request_t *request) {
 	char *buf = malloc(sizeof(char) * SHORT_STR);
 	assert(buf != NULL);
 
@@ -69,4 +39,34 @@ void gen_basic_request_header(request_t *request) {
 	ptr->next = new_header_field("User-Agent", "ao/pre-alpha");
 
 	free(buf);
+}
+
+
+
+void set_range(request_t *request, off_t start, off_t stop) {
+	char value[SHORT_STR];
+	snprintf(value, SHORT_STR, "bytes=%ld-%ld", start, stop);
+	set_header(request->hf, "Range", value);
+}
+
+
+
+// convert request_t to string
+void request2str(request_t *request, char *str) {
+	char *hf_string = calloc(LONG_STR, sizeof(char));
+	assert(hf_string != NULL);
+
+	header_field_t *hf = request->hf;
+	while (hf) {
+		strcat(hf_string, hf->name);
+		strcat(hf_string, ": ");
+		strcat(hf_string, hf->value);
+		strcat(hf_string, "\r\n");
+		hf = hf->next;
+	}
+
+	snprintf(str, LONG_STR, "GET %s HTTP/1.0\r\n%s\r\n",
+			request->url->path, hf_string);
+
+	free(hf_string);
 }

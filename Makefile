@@ -5,11 +5,13 @@ FLAGS = $(CFLAGS) $(LDFLAGS)
 
 source = \
 		 common.o\
-		 text.o\
-		 url.o\
+		 download.o\
 		 http_header.o\
 		 http_request.o\
 		 http_response.o\
+		 text.o\
+		 transport.o\
+		 url.o\
 
 
 ao: $(source)

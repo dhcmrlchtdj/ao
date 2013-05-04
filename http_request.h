@@ -5,6 +5,8 @@ struct request_t {
 
 request_t *new_request(url_t *url);
 void del_request(request_t *request);
+void _gen_basic_header(request_t *request);
 
-char *request2str(request_t *request);
-void gen_basic_request_header(request_t *request);
+void set_range(request_t *request, off_t start, off_t stop);
+
+void request2str(request_t *request, char *str);
