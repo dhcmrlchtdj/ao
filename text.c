@@ -2,6 +2,9 @@
 
 
 int main(int argc, char *argv[]) {
+	environ_t env;
+	environ_init(&env);
+
 	opterr = 0; // do not print error message
 	char *opt_string = "n:o:h";
 	char opt_char;
@@ -12,9 +15,18 @@ int main(int argc, char *argv[]) {
 		if (opt_char == -1) {
 			break; // no more options
 		} else if (opt_char == 'n') {
-			// 块数
+			env.partition = atoi(optarg); // how many threads used
+			if (env.partition <= 0) {
+				print_usage();
+				exit(EXIT_FAILURE);
+			}
 		} else if (opt_char == 'o') {
-			// 文件名
+			int len = strlen(optarg);
+			if (len >= SHORT_STR) {
+				fprintf(stderr, "[ao] Filename too long.\n");
+				exit(EXIT_FAILURE);
+			}
+			static_copy(env.filename, SHORT_STR, optarg, len);
 		} else if (opt_char == 'h') {
 			print_usage(); // print help
 			exit(EXIT_SUCCESS);
@@ -30,9 +42,14 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	} else {
 		// 获取下载地址
-		printf("%s\n", argv[optind]);
+		env.url = parse_url(argv[optind]);
+		if (env.url == NULL) {
+			fprintf(stderr, "[ao] Invalid url: '%s'\n", argv[optind]);
+			exit(EXIT_FAILURE);
+		}
 	}
-	//sysconf(_SC_NPROCESSORS_CONF)
+
+	environ_update(&env);
 
 	return 0;
 }
