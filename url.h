@@ -2,7 +2,7 @@
 #define PORT_LEN 6 // max 65535
 #define HOST_LEN 256 // domain must shorter than 253(?)
 
-struct url {
+struct url_t {
 	char scheme[SCHEME_LEN];
 	char port[PORT_LEN];
 	char host[HOST_LEN];

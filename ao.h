@@ -31,13 +31,19 @@
 #define MAX_REDIRECTION 5
 //#define THREAD_NUM 6
 
-typedef struct environ environ_t;
-typedef struct url url_t;
+typedef struct environ_t environ_t;
+typedef struct header_field_t header_field_t;
+typedef struct request_t request_t;
+typedef struct response_t response_t;
+typedef struct url_t url_t;
 
 //////////////////////////////
 
-#include "text.h"
 #include "common.h"
+#include "http_header.h"
+#include "http_request.h"
+#include "http_response.h"
+#include "text.h"
 #include "url.h"
 
 #endif

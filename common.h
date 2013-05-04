@@ -4,7 +4,7 @@ void static_copy(char *dest, size_t dest_size, char *src, size_t src_size);
 char *dynamic_copy(char *src, size_t src_size);
 
 
-struct environ {
+struct environ_t {
 	int epoll_fd;
 	int timer_fd;
 	int signal_fd;

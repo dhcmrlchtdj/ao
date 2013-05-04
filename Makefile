@@ -7,6 +7,9 @@ source = \
 		 common.o\
 		 text.o\
 		 url.o\
+		 http_header.o\
+		 http_request.o\
+		 http_response.o\
 
 
 ao: $(source)
