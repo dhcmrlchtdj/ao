@@ -35,6 +35,7 @@ typedef struct request_t request_t;
 typedef struct response_t response_t;
 typedef struct url_t url_t;
 typedef struct task_t task_t;
+typedef struct data_t data_t;
 
 //////////////////////////////
 

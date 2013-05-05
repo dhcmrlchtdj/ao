@@ -1,19 +1,26 @@
 #include "ao.h"
 
-
-ssize_t _send(int sockfd, void *buf, size_t len) {
+// not return -1
+ssize_t Send(int sockfd, void *buf, size_t len) {
 	ssize_t size = send(sockfd, buf, len, 0);
-	if (size == -1 && errno != EAGAIN)
+	if (size == -1) {
+		if (errno == EAGAIN)
+			return 0;
 		perror("send error");
+		exit(EXIT_FAILURE);
+	}
 	return size;
 }
 
 
 
-ssize_t _recv(int sockfd, void *buf, size_t len) {
+// return -1 only when EAGAIN
+ssize_t Recv(int sockfd, void *buf, size_t len) {
 	ssize_t size = recv(sockfd, buf, len, 0);
-	if (size == -1 && errno != EAGAIN)
+	if (size == -1 && errno != EAGAIN) {
 		perror("recv error");
+		exit(EXIT_FAILURE);
+	}
 	return size;
 }
 

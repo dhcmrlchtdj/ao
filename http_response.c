@@ -1,11 +1,13 @@
 #include "ao.h"
 
 
-response_t *new_response(void) {
-	response_t *response = malloc(sizeof(response_t));
-	assert(response != NULL);
-	response->hf = NULL;
-	return response;
+response_t *new_response(char *str) {
+	response_t *new = malloc(sizeof(response_t));
+	assert(new != NULL);
+	new->hf = NULL;
+	filter_response_header(new->string, str);
+	parse_response_header(new);
+	return new;
 }
 
 
@@ -45,26 +47,22 @@ void parse_response_header(response_t *response) {
 	free(hf_string);
 }
 
-/*
-   void filter_response_header(task_t *task) {
-   char c;
-   int stop_flag = 0;
-   int pos = 0;
-   while (stop_flag != 4) {
-   _recv(task->sockfd, &c, 1);
-   switch (c) {
-   case '\r':
-   case '\n':
-   stop_flag++;
-   break;
-   default:
-   stop_flag = 0;
-   break;
-   }
-   task->response->string[pos] = c;
-   pos++;
-   }
-   task->response->string[pos] = '\0';
-   }
 
-*/
+void filter_response_header(char *desc, char *src) {
+	// FIXME
+	// error with src?
+	int stop_flag = 0;
+	while (stop_flag != 4) {
+		switch (*src) {
+			case '\r':
+			case '\n':
+				stop_flag++;
+				break;
+			default:
+				stop_flag = 0;
+				break;
+		}
+		*desc++ = *src++;
+	}
+	*desc = '\0';
+}

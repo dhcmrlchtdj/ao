@@ -24,11 +24,12 @@ void environ_update(environ_t* env);
 
 struct task_t {
 	int socket_fd;
+	int redirection;
 	off_t current;
 	off_t offset;
 	off_t remain; // remain to send or space to store
 	char request[LONG_STR];
-	char *response;
+	data_t *data;
 };
 
 void initial_task(task_t *task, request_t *request,
@@ -37,4 +38,14 @@ void destory_task(task_t *task);
 
 //////////////////////////////
 
+struct data_t {
+	off_t pos;
+	char *data;
+};
+
+data_t *new_data(off_t pos);
+
+//////////////////////////////
+
 void set_alarm(int timer_fd, long nsec);
+
