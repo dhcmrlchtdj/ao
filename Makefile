@@ -4,7 +4,7 @@ LDFLAGS = -lpthread
 FLAGS = $(CFLAGS) $(LDFLAGS)
 
 source = \
-		 common.o\
+		 ao.o\
 		 download.o\
 		 http_header.o\
 		 http_request.o\
@@ -12,6 +12,7 @@ source = \
 		 text.o\
 		 transport.o\
 		 url.o\
+		 utils.o\
 
 
 ao: $(source)

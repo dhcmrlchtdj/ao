@@ -20,7 +20,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-
 //////////////////////////////
 
 #define SHORT_STR 1024
@@ -39,7 +38,6 @@ typedef struct data_t data_t;
 
 //////////////////////////////
 
-#include "common.h"
 #include "download.h"
 #include "http_header.h"
 #include "http_request.h"
@@ -47,5 +45,44 @@ typedef struct data_t data_t;
 #include "text.h"
 #include "transport.h"
 #include "url.h"
+#include "utils.h"
+
+//////////////////////////////
+
+struct environ_t {
+	int file_fd;
+	int epoll_fd;
+	int timer_fd;
+	//int signal_fd;
+	int partition; // partition count
+	char filename[SHORT_STR]; // filename
+	url_t *url; // download url
+	task_t *tasks; // task_t array
+};
+
+environ_t *new_environ(void);
+void del_environ(environ_t *env);
+void environ_update(environ_t* env);
+
+struct task_t {
+	int socket_fd;
+	int redirection;
+	off_t current;
+	off_t offset;
+	off_t remain; // remain to send or space to store
+	char request[LONG_STR];
+	data_t *data;
+};
+
+void initial_task(task_t *task, request_t *request,
+		off_t start_pos, off_t stop_pos);
+void destory_task(task_t *task);
+
+struct data_t {
+	off_t pos;
+	char *data;
+};
+
+data_t *new_data(off_t pos);
 
 #endif
