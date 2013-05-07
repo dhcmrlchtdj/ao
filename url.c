@@ -7,9 +7,11 @@ url_t *new_url(void) {
 }
 
 
+
 void del_url(url_t *url) {
 	free(url);
 }
+
 
 
 // if url is invalid, return NULL

@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
 }
 
 
-//////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 
 void initial_environ(environ_t *env) {
@@ -41,11 +41,15 @@ void destroy_environ(environ_t *env) {
 }
 
 
-//////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 
-void initial_task(task_t *task, request_t *request,
-		off_t start_pos, off_t stop_pos) {
+void initial_task(task_t *task, off_t start_pos, off_t stop_pos) {
+	task->url = env.url;
+	create_connection(task);
+	task->todo = wait_connect;
+	task->todo(task);
+
 	return;
 	//task->socket_fd = tcp_conn(request->url);
 

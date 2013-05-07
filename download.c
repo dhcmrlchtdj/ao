@@ -6,14 +6,19 @@ void start_download(environ_t *env) {
 }
 
 void _dl_prepare(environ_t *env) {
+	task_t *task = &env->tasks[0];
+	initial_task(task, 0, 1);
+
+
+
 	return;
 }
 
 
 
-
+/*
 void _get_response_header(task_t *task, int epfd) {
-/*void _dl_prepare(task_t *task, int epfd) {*/
+//void _dl_prepare(task_t *task, int epfd) {
 	ssize_t size;
 	struct epoll_event ev, events;
 	ev.data.fd = task->socket_fd;
@@ -60,3 +65,4 @@ void _get_response_header(task_t *task, int epfd) {
 		}
 	}
 }
+*/

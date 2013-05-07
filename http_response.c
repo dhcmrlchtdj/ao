@@ -1,13 +1,11 @@
 #include "ao.h"
 
 
-response_t *new_response(char *str) {
-	response_t *new = malloc(sizeof(response_t));
-	assert(new != NULL);
-	new->hf = NULL;
-	filter_response_header(new->string, str);
-	parse_response_header(new);
-	return new;
+response_t *new_response(void) {
+	response_t *resp = malloc(sizeof(response_t));
+	assert(resp != NULL);
+	resp->hf = NULL;
+	return resp;
 }
 
 
@@ -19,13 +17,13 @@ void del_response(response_t *response) {
 
 
 
-void parse_response_header(response_t *response) {
+void parse_response_header(response_t *resp) {
 	// status code
-	static_copy(response->status, 4, response->string + 9, 3);
+	static_copy(resp->status, 4, resp->data + 9, 3);
 
 	// header field
-	header_field_t **ptr = &response->hf; // pointer to address of hf
-	char *hf_string = dynamic_copy(response->string, strlen(response->string));
+	header_field_t **ptr = &resp->hf; // pointer to address of hf
+	char *hf_string = dynamic_copy(resp->data, strlen(resp->data));
 
 	char *name, *value, *stop;
 	stop = strchr(hf_string, '\n');
@@ -45,24 +43,4 @@ void parse_response_header(response_t *response) {
 	}
 
 	free(hf_string);
-}
-
-
-void filter_response_header(char *desc, char *src) {
-	// FIXME
-	// error with src?
-	int stop_flag = 0;
-	while (stop_flag != 4) {
-		switch (*src) {
-			case '\r':
-			case '\n':
-				stop_flag++;
-				break;
-			default:
-				stop_flag = 0;
-				break;
-		}
-		*desc++ = *src++;
-	}
-	*desc = '\0';
 }

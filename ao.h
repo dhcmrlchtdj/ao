@@ -1,7 +1,7 @@
 #ifndef _ao_h
 #define _ao_h
 
-//////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 #include <assert.h>
 #include <errno.h>
@@ -20,7 +20,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-//////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 #define SHORT_STR 1024
 #define LONG_STR 4096
@@ -36,7 +36,7 @@ typedef struct url_t url_t;
 typedef struct task_t task_t;
 typedef struct data_t data_t;
 
-//////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 #include "download.h"
 #include "http_header.h"
@@ -47,7 +47,7 @@ typedef struct data_t data_t;
 #include "url.h"
 #include "utils.h"
 
-//////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 struct environ_t {
 	int file_fd;
@@ -65,17 +65,25 @@ void destroy_environ(environ_t *env);
 
 
 struct task_t {
-	void (*todo)(task_t *task);
 	int socket_fd;
-	int redirection;
-	off_t current;
+
+	void (*todo)(task_t *task);
+
+	url_t *url;
+	request_t *request;
+	response_t *response;
+
+	int stop_flag;
+	// stop_flag == 0,1,2,3 => filtering response
+	// stop_flag == 4 => filter finish
+	// stop_flag == 5 => download finish
+	size_t remain;
 	off_t offset;
-	off_t remain; // remain to send or space to store
-	char request[LONG_STR];
-	data_t *data;
+	off_t current; // offset for pwrite
 };
 
-void initial_task(task_t *task, request_t *request, off_t start_pos, off_t stop_pos);
+void initial_task(task_t *task, off_t start_pos, off_t stop_pos);
+//void initial_task(task_t *task, request_t *request, off_t start_pos, off_t stop_pos);
 void destroy_task(task_t *task);
 
 #endif

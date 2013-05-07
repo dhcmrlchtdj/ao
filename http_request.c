@@ -42,7 +42,7 @@ void gen_request_header(request_t *req) {
 
 
 // convert request_t to string
-void gen_request_string(request_t *req) {
+void request2string(request_t *req) {
 	char *hf_string = malloc(LONG_STR * sizeof(char));
 	assert(hf_string != NULL);
 
@@ -55,7 +55,7 @@ void gen_request_string(request_t *req) {
 		hf = hf->next;
 	}
 
-	snprintf(req->request, LONG_STR, "GET %s HTTP/1.0\r\n%s\r\n",
+	snprintf(req->data, LONG_STR, "GET %s HTTP/1.0\r\n%s\r\n",
 			req->url->path, hf_string);
 
 	free(hf_string);
