@@ -2,30 +2,12 @@
 
 
 void start_download(environ_t *env) {
-	// create request
-	request_t *req = new_request(env->url);
-	// prepare download
-	task_t *task = &env->tasks[0];
-	initial_task(task, req, 0, 1);
-	_dl_prepare(task, env->epoll_fd);
-	// parse response
-	response_t *res = new_response(task->data->data);
+	_dl_prepare(env);
 }
-
-
 
 void _dl_prepare(environ_t *env) {
-	if (env->filename[0] != '\0' && log_existed(env->filename)) {
-		//read log
-		return;
-	}
+	return;
 }
-
-
-
-
-
-
 
 
 

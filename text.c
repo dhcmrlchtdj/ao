@@ -1,9 +1,7 @@
 #include "ao.h"
 
 
-int main(int argc, char *argv[]) {
-	environ_t *env = new_environ();
-
+void parse_options(environ_t *env, int argc, char *argv[]) {
 	opterr = 0; // do not print error message
 	char *opt_string = "n:o:h";
 	char opt_char;
@@ -45,13 +43,6 @@ int main(int argc, char *argv[]) {
 			exit(EXIT_FAILURE);
 		}
 	}
-
-	environ_update(env);
-
-	start_download(env);
-
-	del_environ(env);
-	return 0;
 }
 
 

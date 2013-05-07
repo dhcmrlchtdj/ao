@@ -1,62 +1,52 @@
 #include "ao.h"
 
-request_t *new_request(url_t *url) {
-	request_t *new = malloc(sizeof(request_t));
-	assert(new != NULL);
-	new->url = url;
-	_gen_basic_header(new);
-	return new;
+
+request_t *new_request(void) {
+	request_t *req = malloc(sizeof(request_t));
+	assert(req != NULL);
+	return req;
 }
 
 
 
-void del_request(request_t *request) {
-	del_header_field(request->hf);
-	free(request);
+void del_request(request_t *req) {
+	del_header_field(req->hf);
+	free(req);
 }
 
 
 
-void _gen_basic_header(request_t *request) {
-	char *buf = malloc(sizeof(char) * SHORT_STR);
-	assert(buf != NULL);
-
+void gen_request_header(request_t *req) {
 	header_field_t *ptr;
 
+	char *hf_value = malloc(sizeof(char) * SHORT_STR);
+	assert(hf_value != NULL);
+
 	// add Host
-	if (strcmp(request->url->port, "80") == 0) {
-		request->hf = new_header_field("Host", request->url->host);
+	if (strcmp(req->url->port, "80") == 0) {
+		req->hf = new_header_field("Host", req->url->host);
 	} else {
-		snprintf(buf, SHORT_STR, "%s:%s",
-				request->url->host, request->url->port);
-		request->hf = new_header_field("Host", buf);
+		snprintf(hf_value, SHORT_STR, "%s:%s", req->url->host, req->url->port);
+		req->hf = new_header_field("Host", hf_value);
 	}
 	// add Connection
-	ptr = request->hf;
+	ptr = req->hf;
 	ptr->next = new_header_field("Connection", "close");
 	// add user-agent
 	ptr = ptr->next;
 	ptr->next = new_header_field("User-Agent", "ao/pre-alpha");
 
-	free(buf);
-}
-
-
-
-void set_range(request_t *request, off_t start, off_t stop) {
-	char value[SHORT_STR];
-	snprintf(value, SHORT_STR, "bytes=%ld-%ld", start, stop);
-	set_header(request->hf, "Range", value);
+	free(hf_value);
 }
 
 
 
 // convert request_t to string
-void request2str(request_t *request, char *str) {
-	char *hf_string = calloc(LONG_STR, sizeof(char));
+void gen_request_string(request_t *req) {
+	char *hf_string = malloc(LONG_STR * sizeof(char));
 	assert(hf_string != NULL);
 
-	header_field_t *hf = request->hf;
+	header_field_t *hf = req->hf;
 	while (hf) {
 		strcat(hf_string, hf->name);
 		strcat(hf_string, ": ");
@@ -65,8 +55,16 @@ void request2str(request_t *request, char *str) {
 		hf = hf->next;
 	}
 
-	snprintf(str, LONG_STR, "GET %s HTTP/1.0\r\n%s\r\n",
-			request->url->path, hf_string);
+	snprintf(req->request, LONG_STR, "GET %s HTTP/1.0\r\n%s\r\n",
+			req->url->path, hf_string);
 
 	free(hf_string);
+}
+
+
+
+void set_range(request_t *req, off_t start, off_t stop) {
+	char value[SHORT_STR];
+	snprintf(value, SHORT_STR, "bytes=%ld-%ld", start, stop);
+	set_header(req->hf, "Range", value);
 }

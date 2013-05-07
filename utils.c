@@ -10,7 +10,6 @@ char *dynamic_copy(char *src, size_t src_size) {
 }
 
 
-
 void static_copy(char *dest, size_t dest_size, char *src, size_t src_size) {
 	if (dest_size > src_size) {
 		memcpy(dest, src, src_size);

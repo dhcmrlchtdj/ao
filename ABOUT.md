@@ -1,3 +1,10 @@
+# 2015/05/07
+写着写着想起来，`malloc`不是线程安全的……  
+上网搜了一圈，原来还是可以用`malloc`的嘛。
+
++ <http://stackoverflow.com/questions/855763/malloc-thread-safe>
++ <http://chaoslawful.iteye.com/blog/568602>
+
 # 2015/05/05
 比预想的还麻烦些，一直调整各种接口。写程序前设计好的话，会轻松很多吧。
 现在写得好累……

@@ -2,12 +2,12 @@
 
 
 header_field_t *new_header_field(char *name, char *value) {
-	header_field_t *new = malloc(sizeof(header_field_t));
-	assert(new != NULL);
-	new->name = dynamic_copy(name, strlen(name));
-	new->value = dynamic_copy(value, strlen(value));
-	new->next = NULL;
-	return new;
+	header_field_t *hf = malloc(sizeof(header_field_t));
+	assert(hf != NULL);
+	hf->name = dynamic_copy(name, strlen(name));
+	hf->value = dynamic_copy(value, strlen(value));
+	hf->next = NULL;
+	return hf;
 }
 
 
@@ -38,6 +38,7 @@ char *get_header(header_field_t *hf, char *name) {
 
 
 void set_header(header_field_t *hf, char *name, char *value) {
+	assert(hf != NULL);
 	while (1) {
 		if (strcasecmp(hf->name, name) == 0) {
 			free(hf->value);

@@ -1,3 +1,4 @@
+void parse_options(environ_t *env, int argc, char *argv[]);
 void print_usage(void);
 
 //void print_progress_bar(void);

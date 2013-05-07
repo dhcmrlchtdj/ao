@@ -1,6 +1,6 @@
 CC = clang
 CFLAGS = -O0 -g
-LDFLAGS = -lpthread
+LDFLAGS = -pthread
 FLAGS = $(CFLAGS) $(LDFLAGS)
 
 source = \

@@ -26,7 +26,7 @@
 #define LONG_STR 4096
 #define RECV_SIZE 8192
 #define MAX_REDIRECTION 5
-#define PARTITION 6
+#define DEFAULT_PARTITION 6
 
 typedef struct environ_t environ_t;
 typedef struct header_field_t header_field_t;
@@ -60,11 +60,12 @@ struct environ_t {
 	task_t *tasks; // task_t array
 };
 
-environ_t *new_environ(void);
-void del_environ(environ_t *env);
-void environ_update(environ_t* env);
+void initial_environ(environ_t *env);
+void destroy_environ(environ_t *env);
+
 
 struct task_t {
+	void (*todo)(task_t *task);
 	int socket_fd;
 	int redirection;
 	off_t current;
@@ -74,15 +75,7 @@ struct task_t {
 	data_t *data;
 };
 
-void initial_task(task_t *task, request_t *request,
-		off_t start_pos, off_t stop_pos);
-void destory_task(task_t *task);
-
-struct data_t {
-	off_t pos;
-	char *data;
-};
-
-data_t *new_data(off_t pos);
+void initial_task(task_t *task, request_t *request, off_t start_pos, off_t stop_pos);
+void destroy_task(task_t *task);
 
 #endif
