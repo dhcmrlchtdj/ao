@@ -5,6 +5,7 @@ response_t *new_response(void) {
 	response_t *resp = malloc(sizeof(response_t));
 	assert(resp != NULL);
 	resp->hf = NULL;
+	resp->data = new_response_data();
 	return resp;
 }
 
@@ -17,12 +18,15 @@ void del_response(response_t *response) {
 
 
 
-void parse_response_header(response_t *resp) {
+void string2response(response_t *resp) {
 	// status code
-	static_copy(resp->status, 4, resp->data + 9, 3);
+	// strlen("http/1.x ") == 9
+	// strlen("200") == 3
+	static_copy(resp->status, HTTP_STATUS_LEN, resp->data + 9, 3);
 
 	// header field
 	header_field_t **ptr = &resp->hf; // pointer to address of hf
+	// hf_string will be modified
 	char *hf_string = dynamic_copy(resp->data, strlen(resp->data));
 
 	char *name, *value, *stop;
@@ -43,4 +47,12 @@ void parse_response_header(response_t *resp) {
 	}
 
 	free(hf_string);
+}
+
+
+
+char *new_response_data(void) {
+	char *data = malloc(RECV_SIZE * sizeof(char));
+	assert(data != NULL);
+	return data;
 }

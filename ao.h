@@ -28,6 +28,9 @@
 #define MAX_REDIRECTION 5
 #define DEFAULT_PARTITION 6
 
+#define FLAG_RESPONSE_START 0
+#define FLAG_RESPONSE_STOP 4
+
 typedef struct environ_t environ_t;
 typedef struct header_field_t header_field_t;
 typedef struct request_t request_t;
@@ -66,24 +69,25 @@ void destroy_environ(environ_t *env);
 
 struct task_t {
 	int socket_fd;
+	struct epoll_event event;
 
-	void (*todo)(task_t *task);
+	int (*todo)(task_t *task);
 
+	int flag;
+	int redirection;
+	off_t start, stop;
+	off_t offset;
+	size_t remain;
 	url_t *url;
 	request_t *request;
 	response_t *response;
-
-	int stop_flag;
-	// stop_flag == 0,1,2,3 => filtering response
-	// stop_flag == 4 => filter finish
-	// stop_flag == 5 => download finish
-	size_t remain;
-	off_t offset;
-	off_t current; // offset for pwrite
 };
 
 void initial_task(task_t *task, off_t start_pos, off_t stop_pos);
-//void initial_task(task_t *task, request_t *request, off_t start_pos, off_t stop_pos);
 void destroy_task(task_t *task);
+void task_update_request(task_t *task);
+void task_prepare_redirection(task_t *task);
+
+
 
 #endif

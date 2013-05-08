@@ -1,7 +1,9 @@
 #include "ao.h"
 
 
-void wait_connect(task_t *task) {
+// wait for nonblokcing connect succeed
+// event will keep wait EPOLLOUT
+int wait_connect(task_t *task) {
 	int status, value;
 	socklen_t len = sizeof(value);
 	status = getsockopt(task->socket_fd, SOL_SOCKET, SO_ERROR, &value, &len);
@@ -11,67 +13,80 @@ void wait_connect(task_t *task) {
 	}
 	if (value == 0) {
 		// connect succeed
+		// task->event.events = EPOLLOUT;
 		task->todo = send_request;
 		task->offset = 0;
 		task->remain = strlen(task->request->data);
 	}
+	return 1;
 }
 
 
 
-void send_request(task_t *task) {
+// 0 => goto next step
+// 1 => keep writing
+int send_request(task_t *task) {
 	ssize_t size = send(task->socket_fd,
 			task->request->data + task->offset, task->remain, 0);
-	if (size == -1) { // error
-		if (errno != EAGAIN) {
-			perror("send error");
-			exit(EXIT_FAILURE);
-		}
-	} else if (size == 0) { // finish
-		task->todo = recv_response;
+	if (size == 0) { // finish
 		task->offset = 0;
-		task->remain = LONG_STR;
+		task->remain = RECV_SIZE;
+		task->flag = FLAG_RESPONSE_START;
+		task->todo = recv_response;
+		task->event.events = EPOLLIN;
+		return 0;
 	} else {
-		task->offset += size;
-		task->remain -= size;
+		if (size == -1) { // error
+			if (errno != EAGAIN) {
+				perror("send error");
+				exit(EXIT_FAILURE);
+			}
+		} else {
+			task->offset += size;
+			task->remain -= size;
+		}
+		return 1;
 	}
 }
 
 
 
-void recv_response(task_t *task) {
+// 0 response got
+// 1 keep reading
+int recv_response(task_t *task) {
 	ssize_t size;
 	while (1) {
 		size = recv(task->socket_fd,
 				task->response->data + task->offset, 1, 0);
 		if (size == -1) { // error
 			if (errno == EAGAIN) {
-				break;
+				return 1;
 			} else {
 				perror("recv error");
 				exit(EXIT_FAILURE);
 			}
-		} else if (size == 0) { // close before succeed
+		} else if (size == 0) {
+			// connect be closed before succeed ?
 			fprintf(stderr, "[ao] some wrong on socket.\n");
 			exit(EXIT_FAILURE);
 		} else {
 			switch (task->response->data[task->offset]) {
 				case '\r': case '\n':
-					task->stop_flag++;
+					task->flag++;
 					break;
 				default:
-					task->stop_flag = 0;
-				break;
+					task->flag = FLAG_RESPONSE_START;
+					break;
 			}
-			if (task->stop_flag == 4) { // response got
-				task->todo = save_data;
-				task->remain = LONG_STR;
-				break;
+			if (task->flag == FLAG_RESPONSE_STOP) { // response got
+				return 0;
 			} else {
 				task->offset++;
 				task->remain--;
 				if (task->remain == 0) {
-					fprintf(stderr, "[ao] some wrong on socket.\n");
+					// FIXME
+					// length of response header
+					fprintf(stderr, "[ao] response header too long.\n");
 					exit(EXIT_FAILURE);
 				}
 			}
@@ -81,7 +96,7 @@ void recv_response(task_t *task) {
 
 
 
-void save_data(task_t *task) {
+int save_data(task_t *task) {
 	ssize_t size = recv(task->socket_fd,
 			task->response->data, task->remain, 0);
 	if (size == -1) { // error
@@ -91,11 +106,11 @@ void save_data(task_t *task) {
 		}
 	} else if (size == 0) { // finish
 		task->todo = NULL;
-		task->stop_flag = 5;
+		task->flag = 5;
 	} else {
 		// TODO
 		// write to file
-		task->current += size;
+		task->start += size;
 	}
 }
 
@@ -103,6 +118,7 @@ void save_data(task_t *task) {
 ///////////////////////////////////////////////////////////////////////////////
 
 
+// create nonblocking tcp connection
 void create_connection(task_t *task) {
 	int status;
 	struct addrinfo hints, *res, *rp;
@@ -110,7 +126,6 @@ void create_connection(task_t *task) {
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
-
 	status = getaddrinfo(task->url->host, task->url->port, &hints, &res);
 	if (status != 0) {
 		fprintf(stderr, "[ao] getaddrinfo error: %s\n", gai_strerror(status));
@@ -120,7 +135,7 @@ void create_connection(task_t *task) {
 	for (rp = res; rp != NULL; rp = rp->ai_next) {
 		task->socket_fd = socket(rp->ai_family,
 				rp->ai_socktype | SOCK_NONBLOCK, rp->ai_protocol);
-		if (task->socket_fd != -1) break;
+		if (task->socket_fd != -1) break; // create socket succeed
 		perror("socket error");
 	}
 	if (rp == NULL) {

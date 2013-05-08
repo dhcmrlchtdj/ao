@@ -4,6 +4,8 @@
 request_t *new_request(void) {
 	request_t *req = malloc(sizeof(request_t));
 	assert(req != NULL);
+	req->hf = NULL;
+	req->url = NULL;
 	return req;
 }
 
@@ -26,7 +28,8 @@ void gen_request_header(request_t *req) {
 	if (strcmp(req->url->port, "80") == 0) {
 		req->hf = new_header_field("Host", req->url->host);
 	} else {
-		snprintf(hf_value, SHORT_STR, "%s:%s", req->url->host, req->url->port);
+		snprintf(hf_value, SHORT_STR, "%s:%s",
+			   	req->url->host, req->url->port);
 		req->hf = new_header_field("Host", hf_value);
 	}
 	// add Connection
