@@ -42,8 +42,8 @@ int send_request(task_t *task) {
 
 
 
-// 0 response got
-// 1 keep reading
+// 0 => response got
+// 1 => keep reading
 int recv_response(task_t *task) {
 	ssize_t size;
 	while (1) {
@@ -80,24 +80,23 @@ int recv_response(task_t *task) {
 }
 
 
-
+// 0 => finished
+// 1 => EAGAIN
+// 2 => get some data
 int save_data(task_t *task) {
 	ssize_t size = recv(task->socket_fd,
 			task->response->data, task->remain, 0);
-	if (size == -1) { // error
-		if (errno != EAGAIN) {
-			perror("recv error");
-			exit(EXIT_FAILURE);
-		}
+	if (size == -1) { // EAGAIN
+		return 1;
 	} else if (size == 0) { // finish
-		task->todo = NULL;
-		task->flag = 5;
+		task->flag = FLAG_DOWNLOAD_FINISHED;
+		return 0;
 	} else {
 		// TODO
 		// write to file
 		task->start += size;
+		return 2;
 	}
-	return 0;
 }
 
 

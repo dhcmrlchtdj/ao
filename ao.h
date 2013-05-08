@@ -30,6 +30,7 @@
 
 #define FLAG_RESPONSE_START 0
 #define FLAG_RESPONSE_STOP 4
+#define FLAG_DOWNLOAD_FINISHED 5
 
 typedef struct environ_t environ_t;
 typedef struct header_field_t header_field_t;

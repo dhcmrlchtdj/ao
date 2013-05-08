@@ -19,57 +19,67 @@ void dl_start(environ_t *env) {
 	// register to epoll
 	for (i = 0; i < env->partition; i++) {
 		task = &env->tasks[i];
-		epoll_ctl(env->epoll_fd, EPOLL_CTL_ADD, task->socket_fd, &task->event);
+		Epoll_ctl(env->epoll_fd, EPOLL_CTL_ADD, task->socket_fd, &task->event);
 	}
 	timer_ev.data.fd = env->timer_fd;
 	timer_ev.events = EPOLLIN;
-	epoll_ctl(env->epoll_fd, EPOLL_CTL_ADD, env->timer_fd, &timer_ev);
-	gettimeofday(&env->t1, NULL);
+	Epoll_ctl(env->epoll_fd, EPOLL_CTL_ADD, env->timer_fd, &timer_ev);
+	Gettimeofday(&env->t1, NULL);
 	set_timer(env->timer_fd, 200000);
 
 	while (fd_count != 0) {
 		nfds = Epoll_wait(env->epoll_fd, ev, fd_count, -1);
 		for (i = 0; i < nfds; i++) {
 			if (ev[i].data.fd == env->timer_fd) {
-				gettimeofday(&env->t2, NULL);
+				Gettimeofday(&env->t2, NULL);
 				output_progress_bar(env);
 				set_timer(env->timer_fd, 200000);
+			} else if ((ev[i].events & EPOLLERR)
+					|| (ev[i].events & EPOLLHUP)) {
+				fprintf(stderr, "[ao] epollerr or epollhup\n");
+				exit(EXIT_FAILURE);
+			} else if (ev[i].events & EPOLLOUT) {
+				//task = env->tasks[?];
+				//status = tasks->todo(tasks);
+				//if (status == 0)
+					//Epoll_ctl(env->epoll_fd, EPOLL_CTL_MOD,
+						//task->socket_fd, &task->event);
+			} else if (ev[i].events & EPOLLIN) {
+				//task = env->tasks[?];
+				//status = tasks->todo(tasks);
+				//if (status == 0) {
+					//switch (task->flag) {
+						//case FLAG_RESPONSE_STOP:
+							//string2response(task->response);
+							//switch (task->response->status[0]) {
+								//case '2': // 2xx
+									//task->todo = save_data;
+								//case '3': // 3xx
+									//task_prepare_redirection(task);
+									//Epoll_ctl(env->epoll_fd, EPOLL_CTL_MOD,
+											//task->socket_fd, &task->event);
+									//break;
+								//default: // 1xx, 4xx, 5xx
+									//fprintf(stderr, "[ao] http error: '%s'\n",
+											//task->response->status);
+									//exit(EXIT_FAILURE);
+							//}
+							//break;
+						//case FLAG_DOWNLOAD_FINISHED:
+							//close(task->socket_fd);
+							//Epoll_ctl(env->epoll_fd, EPOLL_CTL_DEL,
+									//task->socket_fd, NULL);
+							//fd_count--;
+							//break;
+					//}
+				//} else if (status == 2) {
+					//store_data
+				//}
 			}
 		}
-
-
 	}
 }
 
-		/*if ((ev.events & EPOLLERR) || (ev.events & EPOLLHUP)) {*/
-			/*fprintf(stderr, "[ao] epoll error\n");*/
-			/*exit(EXIT_FAILURE);*/
-		/*} else if (ev.events & EPOLLOUT) {*/
-			/*// wait connect && send request*/
-			/*status = task->todo(task);*/
-			/*if (status == 0)*/
-				/*epoll_ctl(epfd, EPOLL_CTL_MOD, task->socket_fd, &task->event);*/
-		/*} else if (ev.events & EPOLLIN) {*/
-			/*// recv response*/
-			/*status = task->todo(task);*/
-			/*if (status == 0) {*/
-				/*string2response(task->response);*/
-				/*switch (task->response->status[0]) {*/
-					/*case '2': // 2xx*/
-						/*return;*/
-					/*case '3': // 3xx*/
-						/*task_prepare_redirection(task);*/
-						/*epoll_ctl(epfd, EPOLL_CTL_MOD,*/
-								/*task->socket_fd, &task->event);*/
-					/*default: // 1xx, 4xx, 5xx*/
-						/*fprintf(stderr, "[ao] http error: '%s'\n",*/
-								/*task->response->status);*/
-						/*exit(EXIT_FAILURE);*/
-				/*}*/
-			/*}*/
-		/*}*/
-	/*}*/
-/*}*/
 
 
 
@@ -98,10 +108,10 @@ void dl_prepare(environ_t *env) {
 void dl_get_response(int epfd, task_t *task) {
 	int status;
 	struct epoll_event ev;
-	epoll_ctl(epfd, EPOLL_CTL_ADD, task->socket_fd, &task->event);
+	Epoll_ctl(epfd, EPOLL_CTL_ADD, task->socket_fd, &task->event);
 
 	while (1) {
-		epoll_wait(epfd, &ev, 1, -1);
+		Epoll_wait(epfd, &ev, 1, -1);
 		if ((ev.events & EPOLLERR) || (ev.events & EPOLLHUP)) {
 			fprintf(stderr, "[ao] epoll error\n");
 			exit(EXIT_FAILURE);
@@ -109,7 +119,7 @@ void dl_get_response(int epfd, task_t *task) {
 			// wait connect && send request
 			status = task->todo(task);
 			if (status == 0)
-				epoll_ctl(epfd, EPOLL_CTL_MOD, task->socket_fd, &task->event);
+				Epoll_ctl(epfd, EPOLL_CTL_MOD, task->socket_fd, &task->event);
 		} else if (ev.events & EPOLLIN) {
 			// recv response
 			status = task->todo(task);
@@ -120,8 +130,9 @@ void dl_get_response(int epfd, task_t *task) {
 						return;
 					case '3': // 3xx
 						task_prepare_redirection(task);
-						epoll_ctl(epfd, EPOLL_CTL_MOD,
+						Epoll_ctl(epfd, EPOLL_CTL_MOD,
 								task->socket_fd, &task->event);
+						break;
 					default: // 1xx, 4xx, 5xx
 						fprintf(stderr, "[ao] http error: '%s'\n",
 								task->response->status);
@@ -166,10 +177,10 @@ void dl_check_file(environ_t *env) {
 
 
 void dl_get_info_from_log(environ_t *env) {
-	FILE *fp = fopen(env->logfile, "rb");
+	FILE *fp = Fopen(env->logfile, "rb");
 	// update environ
-	close(env->epoll_fd);
-	close(env->timer_fd);
+	Close(env->epoll_fd);
+	Close(env->timer_fd);
 	fread(env, sizeof(environ_t), 1, fp);
 	environ_update_by_log(env);
 	// create tasks
@@ -179,7 +190,7 @@ void dl_get_info_from_log(environ_t *env) {
 		fread(&env->tasks[i], sizeof(task_t), 1, fp);
 		task_update_by_log(&env->tasks[i]);
 	}
-	fclose(fp);
+	Fclose(fp);
 }
 
 

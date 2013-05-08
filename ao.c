@@ -27,8 +27,8 @@ void destroy_environ(environ_t *env) {
 	for (int i = 0; i < env->partition; i++)
 		destroy_task(&env->tasks[i]);
 	free(env->tasks);
-	close(env->epoll_fd);
-	close(env->timer_fd);
+	Close(env->epoll_fd);
+	Close(env->timer_fd);
 }
 
 
@@ -82,7 +82,7 @@ void destroy_task(task_t *task) {
 	del_request(task->request);
 	del_response(task->response);
 	shutdown(task->socket_fd, SHUT_RDWR);
-	close(task->socket_fd);
+	Close(task->socket_fd);
 }
 
 
@@ -112,7 +112,7 @@ void task_prepare_redirection(task_t *task) {
 	parse_url(task->url, url);
 
 	shutdown(task->socket_fd, SHUT_RDWR);
-	close(task->socket_fd);
+	Close(task->socket_fd);
 
 	create_connection(task);
 	task->event.data.fd = task->socket_fd;
