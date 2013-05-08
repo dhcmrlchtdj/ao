@@ -14,8 +14,8 @@ int Getsockopt(int sockfd, int level, int optname,
 
 
 ssize_t Send(int sockfd, const void *buf, size_t len) {
-	ssize_t s = send(sockfd, buf, len, 0);
-	if (s == -1 && errno != EAGAIN) {
+	ssize_t s = send(sockfd, buf, len, MSG_DONTWAIT);
+	if (s == -1 && errno != EAGAIN && errno != EWOULDBLOCK) {
 		perror("send error");
 		exit(EXIT_FAILURE);
 	}
@@ -25,9 +25,9 @@ ssize_t Send(int sockfd, const void *buf, size_t len) {
 
 
 ssize_t Recv(int sockfd, void *buf, size_t len) {
-	ssize_t s = recv(sockfd, buf, len, 0);
-	if (s == -1 && errno != EAGAIN) {
-		perror("send error");
+	ssize_t s = recv(sockfd, buf, len, MSG_DONTWAIT);
+	if (s == -1 && errno != EAGAIN && errno != EWOULDBLOCK) {
+		perror("recv error");
 		exit(EXIT_FAILURE);
 	}
 	return s;
