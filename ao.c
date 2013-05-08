@@ -16,14 +16,9 @@ int main(int argc, char *argv[]) {
 
 void initial_environ(environ_t *env) {
 	memset(env, 0, sizeof(environ_t));
-
 	env->partition = DEFAULT_PARTITION;
-
-	env->epoll_fd = epoll_create1(0);
-	assert(env->epoll_fd != -1);
-
-	env->timer_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
-	assert(env->timer_fd != -1);
+	env->epoll_fd = Epoll_create1(0);
+	env->timer_fd = Timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
 }
 
 
@@ -39,10 +34,8 @@ void destroy_environ(environ_t *env) {
 
 
 void environ_update_by_log(environ_t *env) {
-	env->epoll_fd = epoll_create1(0);
-	assert(env->epoll_fd != -1);
-	env->timer_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
-	assert(env->timer_fd != -1);
+	env->epoll_fd = Epoll_create1(0);
+	env->timer_fd = Timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
 	env->last_size = 0;
 }
 
@@ -51,8 +44,7 @@ void environ_update_by_log(environ_t *env) {
 
 
 task_t *new_task(off_t start, off_t stop) {
-	task_t *task = malloc(sizeof(task_t));
-	assert(task != NULL);
+	task_t *task = Malloc(sizeof(task_t));
 	initial_task(task, start, stop);
 	return task;
 }

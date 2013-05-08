@@ -2,8 +2,7 @@
 
 
 char *dynamic_copy(char *src, size_t src_size) {
-	char *dest = malloc(sizeof(char) * (src_size + 1));
-	assert(dest != NULL);
+	char *dest = Malloc(sizeof(char) * (src_size + 1));
 	memcpy(dest, src, src_size);
 	dest[src_size] = '\0';
 	return dest;

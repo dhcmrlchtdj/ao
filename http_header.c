@@ -2,8 +2,7 @@
 
 
 header_field_t *new_header_field(char *name, char *value) {
-	header_field_t *hf = malloc(sizeof(header_field_t));
-	assert(hf != NULL);
+	header_field_t *hf = Malloc(sizeof(header_field_t));
 	hf->name = dynamic_copy(name, strlen(name));
 	hf->value = dynamic_copy(value, strlen(value));
 	hf->next = NULL;

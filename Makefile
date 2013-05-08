@@ -13,6 +13,7 @@ source = \
 		 transport.o\
 		 url.o\
 		 utils.o\
+		 wrap.o\
 
 
 ao: $(source)

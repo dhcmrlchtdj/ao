@@ -13,6 +13,9 @@ void dl_start(environ_t *env) {
 	int fd_count = env->partition + 1;
 	struct epoll_event timer_ev, ev[fd_count];
 	task_t *task;
+
+	env->file_fd = Open(env->filename, O_WRONLY | O_CREAT, 0644);
+
 	// register to epoll
 	for (i = 0; i < env->partition; i++) {
 		task = &env->tasks[i];
@@ -25,11 +28,7 @@ void dl_start(environ_t *env) {
 	set_timer(env->timer_fd, 200000);
 
 	while (fd_count != 0) {
-		nfds = epoll_wait(env->epoll_fd, ev, fd_count, -1);
-		if (nfds == -1) {
-			perror("epoll_wait");
-			exit(EXIT_FAILURE);
-		}
+		nfds = Epoll_wait(env->epoll_fd, ev, fd_count, -1);
 		for (i = 0; i < nfds; i++) {
 			if (ev[i].data.fd == env->timer_fd) {
 				gettimeofday(&env->t2, NULL);
@@ -174,8 +173,7 @@ void dl_get_info_from_log(environ_t *env) {
 	fread(env, sizeof(environ_t), 1, fp);
 	environ_update_by_log(env);
 	// create tasks
-	env->tasks = malloc(env->partition * sizeof(task_t));
-	assert(env->tasks != NULL);
+	env->tasks = Malloc(env->partition * sizeof(task_t));
 	// update tasks
 	for (int i = 0; i < env->partition; i++) {
 		fread(&env->tasks[i], sizeof(task_t), 1, fp);
@@ -211,8 +209,7 @@ void dl_get_info_from_task(environ_t *env) {
 		printf("[ao] filesize: %ld.\n", env->filesize);
 		// initial tasks
 		del_task(env->tasks);
-		env->tasks = calloc(env->partition, sizeof(task_t));
-		assert(env->tasks != NULL);
+		env->tasks = Malloc(env->partition * sizeof(task_t));
 		off_t block_size = env->filesize / env->partition;
 		off_t start = 0, stop = 0;
 		int i;

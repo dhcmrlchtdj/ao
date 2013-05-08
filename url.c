@@ -1,8 +1,7 @@
 #include "ao.h"
 
 url_t *new_url(void) {
-	url_t *url = malloc(sizeof(url_t));
-	assert(url != NULL);
+	url_t *url = Malloc(sizeof(url_t));
 	return url;
 }
 

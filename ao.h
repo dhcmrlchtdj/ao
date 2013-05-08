@@ -3,7 +3,6 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
@@ -50,6 +49,7 @@ typedef struct data_t data_t;
 #include "transport.h"
 #include "url.h"
 #include "utils.h"
+#include "wrap.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 

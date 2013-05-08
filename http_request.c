@@ -2,8 +2,7 @@
 
 
 request_t *new_request(void) {
-	request_t *req = malloc(sizeof(request_t));
-	assert(req != NULL);
+	request_t *req = Malloc(sizeof(request_t));
 	req->hf = NULL;
 	req->url = NULL;
 	return req;
@@ -20,10 +19,7 @@ void del_request(request_t *req) {
 
 void gen_request_header(request_t *req) {
 	header_field_t *ptr;
-
-	char *hf_value = malloc(sizeof(char) * SHORT_STR);
-	assert(hf_value != NULL);
-
+	char *hf_value = Malloc(sizeof(char) * SHORT_STR);
 	// add Host
 	if (strcmp(req->url->port, "80") == 0) {
 		req->hf = new_header_field("Host", req->url->host);
@@ -46,9 +42,7 @@ void gen_request_header(request_t *req) {
 
 // convert request_t to string
 void request2string(request_t *req) {
-	char *hf_string = malloc(LONG_STR * sizeof(char));
-	assert(hf_string != NULL);
-
+	char *hf_string = Malloc(LONG_STR * sizeof(char));
 	header_field_t *hf = req->hf;
 	while (hf) {
 		strcat(hf_string, hf->name);
