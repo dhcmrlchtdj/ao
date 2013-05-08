@@ -112,6 +112,7 @@ int save_data(task_t *task) {
 		// write to file
 		task->start += size;
 	}
+	return 0;
 }
 
 

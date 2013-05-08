@@ -15,8 +15,8 @@ void del_url(url_t *url) {
 
 
 // if url is invalid, return NULL
-url_t *parse_url(char *url_string) {
-	url_t *url = new_url();
+void parse_url(url_t *url, char *url_string) {
+	memset(url, 0, sizeof(url_t));
 
 	int cnt; // ssacnf result
 	char *with_port = "%[^:]://%[^:/]:%[^/]%[^ ]";
@@ -28,8 +28,8 @@ url_t *parse_url(char *url_string) {
 		cnt = sscanf(url_string, without_port,
 				url->scheme, url->host, url->path);
 		if (cnt != 3) {
-			del_url(url);
-			return NULL;
+			fprintf(stderr, "[ao] Invalid url: '%s'\n", url_string);
+			exit(EXIT_FAILURE);
 		}
 		// TODO
 		// make compare faster
@@ -38,10 +38,8 @@ url_t *parse_url(char *url_string) {
 		} else if (strcasecmp(url->scheme, "https") == 0) {
 			static_copy(url->port, PORT_LEN,  "443", 3);
 		} else {
-			del_url(url);
-			return NULL;
+			fprintf(stderr, "[ao] Invalid url: '%s'\n", url_string);
+			exit(EXIT_FAILURE);
 		}
 	}
-
-	return url;
 }

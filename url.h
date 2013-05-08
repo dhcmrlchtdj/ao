@@ -12,4 +12,4 @@ struct url_t {
 url_t *new_url(void);
 void del_url(url_t *url);
 
-url_t *parse_url(char *url);
+void parse_url(url_t *url, char *url_string);

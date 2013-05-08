@@ -21,8 +21,10 @@ void static_copy(char *dest, size_t dest_size, char *src, size_t src_size) {
 }
 
 
+///////////////////////////////////////////////////////////////////////////////
 
-void set_alarm(int timer_fd, long nsec) {
+
+void set_timer(int timer_fd, long nsec) {
 	// {0, 0} means alarm once
 	// {0, nsec} means after nsec nanoseconds
 	struct itimerspec interval = { {0, 0}, {0, nsec} };
@@ -31,6 +33,7 @@ void set_alarm(int timer_fd, long nsec) {
 
 
 
+// return ms
 long delta_time(struct timeval *t1, struct timeval *t2) {
 	long sec = t2->tv_sec - t1->tv_sec;
 	long usec = t2->tv_usec - t1->tv_usec;
@@ -38,32 +41,23 @@ long delta_time(struct timeval *t1, struct timeval *t2) {
 }
 
 
+///////////////////////////////////////////////////////////////////////////////
 
-/*
 
-void get_filename_by_path(char *path) {
+void get_filename_from_path(char *filename, char *path) {
 	char *start, *stop;
 	start = strrchr(path, '/');
 	if (start == NULL || *++start == '\0') {
 		// use "default" if not filename
-		static_copy(env.file_name, SHORT_STR, "default", 7);
+		static_copy(filename, SHORT_STR, "default", strlen("default"));
 	} else {
 		// FIXME
 		stop = strchr(start, '?');
 		if (stop) {
 			// str between '/' and '?'
-			static_copy(env.file_name, SHORT_STR, start, stop - start);
+			static_copy(filename, SHORT_STR, start, stop - start);
 		} else {
-			static_copy(env.file_name, SHORT_STR, start, strlen(start));
+			static_copy(filename, SHORT_STR, start, strlen(start));
 		}
 	}
 }
-
-
-
-void get_filesize_by_range(char *range) {
-	char *pos = strchr(range, '/');
-	env.file_size = atol(++pos); // move to filesize
-}
-
-*/

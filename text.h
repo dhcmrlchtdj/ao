@@ -1,6 +1,6 @@
 void parse_options(environ_t *env, int argc, char *argv[]);
 void print_usage(void);
 
-//void print_progress_bar(void);
-//void _print_known_size(void);
-//void _print_unknown_size(void);
+void output_progress_bar(environ_t *env);
+void _known_size(environ_t *env);
+void _unknown_size(environ_t *env);

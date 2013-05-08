@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,22 +58,28 @@ struct environ_t {
 	int epoll_fd;
 	int timer_fd;
 	//int signal_fd;
+	struct timeval t1, t2;
+	size_t last_size;
+	size_t filesize;
 	int partition; // partition count
+	bool support_range;
+	bool has_log;
+	char logfile[SHORT_STR]; // log file
 	char filename[SHORT_STR]; // filename
-	url_t *url; // download url
+	url_t url; // download url
 	task_t *tasks; // task_t array
 };
 
 void initial_environ(environ_t *env);
 void destroy_environ(environ_t *env);
+void environ_update_by_log(environ_t *env);
+
 
 
 struct task_t {
 	int socket_fd;
 	struct epoll_event event;
-
 	int (*todo)(task_t *task);
-
 	int flag;
 	int redirection;
 	off_t start, stop;
@@ -83,11 +90,13 @@ struct task_t {
 	response_t *response;
 };
 
-void initial_task(task_t *task, off_t start_pos, off_t stop_pos);
+task_t *new_task(off_t start, off_t stop);
+void del_task(task_t *task);
+void initial_task(task_t *task, off_t start, off_t stop);
 void destroy_task(task_t *task);
 void task_update_request(task_t *task);
 void task_prepare_redirection(task_t *task);
-
+void task_update_by_log(task_t *task);
 
 
 #endif

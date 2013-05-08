@@ -19,40 +19,62 @@ void initial_environ(environ_t *env) {
 
 	env->partition = DEFAULT_PARTITION;
 
-	env->tasks = calloc(env->partition, sizeof(task_t));
-	assert(env->tasks != NULL);
-
 	env->epoll_fd = epoll_create1(0);
 	assert(env->epoll_fd != -1);
 
 	env->timer_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
 	assert(env->timer_fd != -1);
-
-	//set_alarm(env->timer_fd, 200000); // 200,000 nanosecond == 0.2 second
-	//use gettimeofday to calculate time
 }
 
 
+
 void destroy_environ(environ_t *env) {
+	for (int i = 0; i < env->partition; i++)
+		destroy_task(&env->tasks[i]);
+	free(env->tasks);
 	close(env->epoll_fd);
 	close(env->timer_fd);
-	del_url(env->url);
-	free(env->tasks);
+}
+
+
+
+void environ_update_by_log(environ_t *env) {
+	env->epoll_fd = epoll_create1(0);
+	assert(env->epoll_fd != -1);
+	env->timer_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+	assert(env->timer_fd != -1);
+	env->last_size = 0;
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
 
 
-void initial_task(task_t *task, off_t start_pos, off_t stop_pos) {
+task_t *new_task(off_t start, off_t stop) {
+	task_t *task = malloc(sizeof(task_t));
+	assert(task != NULL);
+	initial_task(task, start, stop);
+	return task;
+}
+
+
+
+void del_task(task_t *task) {
+	destroy_task(task);
+	free(task);
+}
+
+
+
+void initial_task(task_t *task, off_t start, off_t stop) {
 	create_connection(task);
 	task->event.data.fd = task->socket_fd;
 	task->event.events = EPOLLOUT;
 	task->todo = wait_connect;
 
-	task->url = env.url;
-	task->start = start_pos;
-	task->stop = stop_pos;
+	task->url = &env.url;
+	task->start = start;
+	task->stop = stop;
 	task->redirection = MAX_REDIRECTION;
 
 	task->request = new_request();
@@ -64,6 +86,7 @@ void initial_task(task_t *task, off_t start_pos, off_t stop_pos) {
 
 
 void destroy_task(task_t *task) {
+	if (task->redirection != MAX_REDIRECTION) del_url(task->url);
 	del_request(task->request);
 	del_response(task->response);
 	shutdown(task->socket_fd, SHUT_RDWR);
@@ -93,7 +116,8 @@ void task_prepare_redirection(task_t *task) {
 		exit(EXIT_FAILURE);
 	}
 	if (task->redirection != 4) del_url(task->url); // not first redirection
-	task->url = parse_url(url);
+	task->url = new_url();
+	parse_url(task->url, url);
 
 	shutdown(task->socket_fd, SHUT_RDWR);
 	close(task->socket_fd);
@@ -107,4 +131,20 @@ void task_prepare_redirection(task_t *task) {
 
 	del_header_field(task->response->hf);
 	task->response->hf = NULL;
+}
+
+
+
+void task_update_by_log(task_t *task) {
+	create_connection(task);
+	task->event.data.fd = task->socket_fd;
+	task->event.events = EPOLLOUT;
+	task->todo = wait_connect;
+
+	task->url = &env.url;
+
+	task->request = new_request();
+	task_update_request(task);
+
+	task->response = new_response();
 }
