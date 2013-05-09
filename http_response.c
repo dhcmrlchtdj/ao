@@ -4,7 +4,7 @@
 response_t *new_response(void) {
 	response_t *resp = Malloc(sizeof(response_t));
 	resp->hf = NULL;
-	resp->data = new_response_data();
+	//resp->data = new_response_data();
 	return resp;
 }
 
@@ -50,7 +50,7 @@ void string2response(response_t *resp) {
 
 
 
-char *new_response_data(void) {
-	char *data = Malloc(RECV_SIZE * sizeof(char));
-	return data;
-}
+//char *new_response_data(void) {
+	//char *data = Malloc(RECV_SIZE * sizeof(char));
+	//return data;
+//}

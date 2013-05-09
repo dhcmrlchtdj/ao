@@ -138,6 +138,9 @@ void task_prepare_redirection(task_t *task) {
 
 	del_header_field(task->response->hf);
 	task->response->hf = NULL;
+
+	task->offset = 0;
+	task->remain = RECV_SIZE;
 }
 
 

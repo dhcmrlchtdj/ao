@@ -3,7 +3,8 @@
 struct response_t {
 	header_field_t *hf;
 	char status[HTTP_STATUS_LEN];
-	char *data; // char data[RECV_SIZE]
+	//char *data; // char data[RECV_SIZE]
+	char data[RECV_SIZE];
 };
 
 response_t *new_response(void);
@@ -11,4 +12,4 @@ void del_response(response_t *resp);
 
 void string2response(response_t *resp);
 
-char *new_response_data(void);
+//char *new_response_data(void);

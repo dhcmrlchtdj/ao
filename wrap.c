@@ -84,6 +84,23 @@ void Close(int fd) {
 
 
 
+void Pwrite(int fd, const char *buf, size_t count, off_t offset) {
+	ssize_t s;
+	while (1) {
+		s = pwrite(fd, buf, count, offset);
+		if (s == -1) {
+			perror("pwrite error");
+			exit(EXIT_FAILURE);
+		}
+		if (s == count) return;
+		count -= s;
+		offset += s;
+		buf += s;
+	}
+}
+
+
+
 FILE *Fopen(const char *path, const char *mode) {
 	FILE *s = fopen(path, mode);
 	if (s == NULL) {

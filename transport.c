@@ -65,6 +65,7 @@ int recv_response(task_t *task) {
 			}
 			if (task->flag == FLAG_RESPONSE_STOP) { // response got
 				task->todo = save_data;
+				task->offset = task->start;
 				return 0;
 			} else {
 				task->offset++;
@@ -86,7 +87,7 @@ int recv_response(task_t *task) {
 // 2 => get some data
 int save_data(task_t *task) {
 	ssize_t size = recv(task->socket_fd,
-			task->response->data, task->remain, 0);
+			task->response->data, RECV_SIZE, 0);
 	if (size == -1) { // EAGAIN
 		return 1;
 	} else if (size == 0) { // finish
@@ -94,8 +95,7 @@ int save_data(task_t *task) {
 		return 0;
 	} else {
 		// TODO
-		// write to file
-		task->start += size;
+		task->size = size;
 		return 2;
 	}
 }

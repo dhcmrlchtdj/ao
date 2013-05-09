@@ -12,7 +12,7 @@ void start_download(environ_t *env) {
 
 void dl_start(environ_t *env) {
 	int i, status, nfds;
-	int fd_count = env->partition + 1;
+	int fd_count = env->partition + 2; // timer_fd and signal_fd
 	struct epoll_event ev[fd_count], timer_ev, signal_ev;
 	task_t *task;
 
@@ -34,7 +34,7 @@ void dl_start(environ_t *env) {
 	}
 
 	Gettimeofday(&env->t1);
-	set_timer(env->timer_fd, 200000);
+	set_timer(env->timer_fd, 250000);
 
 	while (fd_count > 2) { // timer_fd && signal_fd remain
 		nfds = Epoll_wait(env->epoll_fd, ev, fd_count, -1);
@@ -42,7 +42,7 @@ void dl_start(environ_t *env) {
 			if (ev[i].data.fd == env->timer_fd) { // timer
 				Gettimeofday(&env->t2);
 				output_progress_bar(env);
-				set_timer(env->timer_fd, 200000);
+				set_timer(env->timer_fd, 250000);
 			} else if (ev[i].data.fd == env->signal_fd) {
 				dl_save_status(env);
 				exit(EXIT_SUCCESS);
@@ -84,7 +84,9 @@ void dl_start(environ_t *env) {
 							break;
 					}
 				} else if (status == 2) { // save_data get some data
-					return;
+					Pwrite(env->file_fd, task->response->data,
+							task->size, task->offset);
+					task->offset += task->size;
 				}
 			}
 		}

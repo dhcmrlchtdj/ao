@@ -6,7 +6,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
-#include <pthread.h>
+//#include <pthread.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -86,7 +86,9 @@ struct task_t {
 	int (*todo)(task_t *task);
 	int flag;
 	int redirection;
-	off_t start, stop;
+	off_t start;
+	off_t stop;
+	off_t size;
 	off_t offset;
 	size_t remain;
 	url_t *url;

@@ -1,5 +1,6 @@
 int Open(const char *pathname, int flags, mode_t mode);
 void Close(int fd);
+void Pwrite(int fd, const char *buf, size_t count, off_t offset);
 FILE *Fopen(const char *path, const char *mode);
 void Fclose(FILE *fp);
 void Unlink(const char *pathname);
