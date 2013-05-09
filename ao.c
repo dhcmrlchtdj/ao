@@ -17,8 +17,12 @@ int main(int argc, char *argv[]) {
 void initial_environ(environ_t *env) {
 	memset(env, 0, sizeof(environ_t));
 	env->partition = DEFAULT_PARTITION;
-	env->epoll_fd = Epoll_create1(0);
-	env->timer_fd = Timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+	env->epoll_fd = Epoll_create();
+	env->timer_fd = Timerfd_create();
+	Sigemptyset(&env->sigset);
+	Sigaddset(&env->sigset, SIGINT);
+	Sigaddset(&env->sigset, SIGTERM);
+	env->signal_fd = Signalfd(&env->sigset);
 }
 
 
@@ -27,17 +31,18 @@ void destroy_environ(environ_t *env) {
 	for (int i = 0; i < env->partition; i++)
 		destroy_task(&env->tasks[i]);
 	free(env->tasks);
+	Close(env->file_fd);
 	Close(env->epoll_fd);
 	Close(env->timer_fd);
-	Close(env->file_fd);
+	Close(env->signal_fd);
 }
 
 
 
 void environ_update_by_log(environ_t *env) {
-	env->epoll_fd = Epoll_create1(0);
-	env->timer_fd = Timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
-	env->last_size = 0;
+	env->epoll_fd = Epoll_create();
+	env->timer_fd = Timerfd_create();
+	env->signal_fd = Signalfd(&env->sigset);
 }
 
 

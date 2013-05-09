@@ -4,6 +4,8 @@
 void start_download(environ_t *env) {
 	dl_prepare(env);
 	dl_start(env);
+	//clean up
+	if (env->has_log) Unlink(env->logfile);
 }
 
 
@@ -11,7 +13,7 @@ void start_download(environ_t *env) {
 void dl_start(environ_t *env) {
 	int i, status, nfds;
 	int fd_count = env->partition + 1;
-	struct epoll_event timer_ev, ev[fd_count];
+	struct epoll_event ev[fd_count], timer_ev, signal_ev;
 	task_t *task;
 
 	env->file_fd = Open(env->filename, O_WRONLY | O_CREAT, 0644);
@@ -24,17 +26,26 @@ void dl_start(environ_t *env) {
 	timer_ev.data.fd = env->timer_fd;
 	timer_ev.events = EPOLLIN;
 	Epoll_ctl(env->epoll_fd, EPOLL_CTL_ADD, env->timer_fd, &timer_ev);
+	if (env->support_range) {
+		Sigprocmask(SIG_BLOCK, &env->sigset);
+		signal_ev.data.fd = env->signal_fd;
+		signal_ev.events = EPOLLIN;
+		Epoll_ctl(env->epoll_fd, EPOLL_CTL_ADD, env->signal_fd, &signal_ev);
+	}
 
-	Gettimeofday(&env->t1, NULL);
+	Gettimeofday(&env->t1);
 	set_timer(env->timer_fd, 200000);
 
-	while (fd_count > 1) { // timer_fd remain
+	while (fd_count > 2) { // timer_fd && signal_fd remain
 		nfds = Epoll_wait(env->epoll_fd, ev, fd_count, -1);
 		for (i = 0; i < nfds; i++) {
 			if (ev[i].data.fd == env->timer_fd) { // timer
-				Gettimeofday(&env->t2, NULL);
+				Gettimeofday(&env->t2);
 				output_progress_bar(env);
 				set_timer(env->timer_fd, 200000);
+			} else if (ev[i].data.fd == env->signal_fd) {
+				dl_save_status(env);
+				exit(EXIT_SUCCESS);
 			} else if ((ev[i].events & EPOLLERR)
 					|| (ev[i].events & EPOLLHUP)) { // error
 				fprintf(stderr, "[ao] epollerr or epollhup\n");
@@ -158,14 +169,14 @@ void dl_check_file(environ_t *env) {
 	while (1) {
 		// get log file's name
 		snprintf(env->logfile, SHORT_STR, log_format, filename);
-		if (access(filename, F_OK) != 0) {
+		if (access(filename, F_OK) == -1) {
 			// file not found
 			env->has_log = false;
 			static_copy(env->filename, SHORT_STR, filename, strlen(filename));
 			printf("[ao] save to '%s'.\n", env->filename);
 			return;
 		} else if (access(env->logfile, F_OK) == 0) {
-			// log file found
+			// file exist and log file found
 			env->has_log = true;
 			static_copy(env->filename, SHORT_STR, filename, strlen(filename));
 			printf("[ao] save to '%s'.\n", env->filename);
@@ -184,6 +195,7 @@ void dl_get_info_from_log(environ_t *env) {
 	// update environ
 	Close(env->epoll_fd);
 	Close(env->timer_fd);
+	Close(env->signal_fd);
 	fread(env, sizeof(environ_t), 1, fp);
 	environ_update_by_log(env);
 	// create tasks
@@ -234,4 +246,15 @@ void dl_get_info_from_task(environ_t *env) {
 		}
 		initial_task(&env->tasks[i], stop, env->filesize);
 	}
+}
+
+
+
+
+void dl_save_status(environ_t *env) {
+	FILE *log = Fopen(env->logfile, "wb");
+	env->has_log = true;
+	fwrite(env, sizeof(environ_t), 1, log);
+	fwrite(env->tasks, sizeof(task_t), env->partition, log);
+	Fclose(log);
 }

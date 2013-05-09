@@ -103,6 +103,16 @@ void Fclose(FILE *fp) {
 }
 
 
+
+void Unlink(const char *pathname) {
+	if (unlink(pathname) == -1) {
+		perror("unlink error");
+		exit(EXIT_FAILURE);
+	}
+}
+
+
+
 int Epoll_wait(int epfd, struct epoll_event *events,
 		int maxevents, int timeout) {
 	int s = epoll_wait(epfd, events, maxevents, timeout);
@@ -124,8 +134,8 @@ void Epoll_ctl(int epfd, int op, int fd, struct epoll_event *event) {
 
 
 
-int Epoll_create1(int flags) {
-	int s = epoll_create1(flags);
+int Epoll_create(void) {
+	int s = epoll_create1(0);
 	if (s == -1) {
 		perror("epoll_create1 error");
 		exit(EXIT_FAILURE);
@@ -135,8 +145,8 @@ int Epoll_create1(int flags) {
 
 
 
-int Timerfd_create(int clockid, int flags) {
-	int s = timerfd_create(clockid, flags);
+int Timerfd_create(void) {
+	int s = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
 	if (s == -1) {
 		perror("timerfd_create error");
 		exit(EXIT_FAILURE);
@@ -168,9 +178,47 @@ void *Calloc(size_t nmemb, size_t size) {
 
 
 
-void Gettimeofday(struct timeval *tv, struct timezone *tz) {
-	if (gettimeofday(tv, tz) == -1) {
+void Gettimeofday(struct timeval *tv) {
+	if (gettimeofday(tv, NULL) == -1) {
 		perror("gettimeofday error");
+		exit(EXIT_FAILURE);
+	}
+}
+
+
+
+int Signalfd(const sigset_t *mask) {
+	int s = signalfd(-1, mask, SFD_NONBLOCK);
+	if (s == -1) {
+		perror("signalfd error");
+		exit(EXIT_FAILURE);
+	}
+	return s;
+}
+
+
+
+void Sigemptyset(sigset_t *set) {
+	if (sigemptyset(set) == -1) {
+		fprintf(stderr, "sigemptyset error.\n");
+		exit(EXIT_FAILURE);
+	}
+}
+
+
+
+void Sigaddset(sigset_t *set, int signum) {
+	if (sigaddset(set, signum) == -1) {
+		fprintf(stderr, "sigaddset error.\n");
+		exit(EXIT_FAILURE);
+	}
+}
+
+
+
+void Sigprocmask(int how, const sigset_t *set) {
+	if (sigprocmask(how, set, NULL) == -1) {
+		fprintf(stderr, "sigprocmask error\n");
 		exit(EXIT_FAILURE);
 	}
 }

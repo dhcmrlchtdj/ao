@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <pthread.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -55,20 +56,21 @@ typedef struct data_t data_t;
 ///////////////////////////////////////////////////////////////////////////////
 
 struct environ_t {
-	int file_fd;
 	int epoll_fd;
 	int timer_fd;
-	//int signal_fd;
-	struct timeval t1, t2;
-	size_t last_size;
-	size_t filesize;
+	int signal_fd;
+	int file_fd;
 	int partition; // partition count
+	size_t filesize; // filesize
+	size_t last_size; // last record by ouput progress bar
 	bool support_range;
 	bool has_log;
-	char logfile[SHORT_STR]; // log file
 	char filename[SHORT_STR]; // filename
+	char logfile[SHORT_STR]; // log file
 	url_t url; // download url
 	task_t *tasks; // task_t array
+	struct timeval t1, t2;
+	sigset_t sigset;
 };
 
 void initial_environ(environ_t *env);
