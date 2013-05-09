@@ -74,6 +74,7 @@ struct environ_t {
 void initial_environ(environ_t *env);
 void destroy_environ(environ_t *env);
 void environ_update_by_log(environ_t *env);
+task_t *get_task_by_fd(environ_t *env, int fd);
 
 
 

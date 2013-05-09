@@ -42,7 +42,7 @@ void gen_request_header(request_t *req) {
 
 // convert request_t to string
 void request2string(request_t *req) {
-	char *hf_string = Malloc(LONG_STR * sizeof(char));
+	char *hf_string = Calloc(LONG_STR, sizeof(char));
 	header_field_t *hf = req->hf;
 	while (hf) {
 		strcat(hf_string, hf->name);

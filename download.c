@@ -24,57 +24,57 @@ void dl_start(environ_t *env) {
 	timer_ev.data.fd = env->timer_fd;
 	timer_ev.events = EPOLLIN;
 	Epoll_ctl(env->epoll_fd, EPOLL_CTL_ADD, env->timer_fd, &timer_ev);
+
 	Gettimeofday(&env->t1, NULL);
 	set_timer(env->timer_fd, 200000);
 
-	while (fd_count != 0) {
+	while (fd_count > 1) { // timer_fd remain
 		nfds = Epoll_wait(env->epoll_fd, ev, fd_count, -1);
 		for (i = 0; i < nfds; i++) {
-			if (ev[i].data.fd == env->timer_fd) {
+			if (ev[i].data.fd == env->timer_fd) { // timer
 				Gettimeofday(&env->t2, NULL);
 				output_progress_bar(env);
 				set_timer(env->timer_fd, 200000);
 			} else if ((ev[i].events & EPOLLERR)
-					|| (ev[i].events & EPOLLHUP)) {
+					|| (ev[i].events & EPOLLHUP)) { // error
 				fprintf(stderr, "[ao] epollerr or epollhup\n");
 				exit(EXIT_FAILURE);
-			} else if (ev[i].events & EPOLLOUT) {
-				//task = env->tasks[?];
-				//status = tasks->todo(tasks);
-				//if (status == 0)
-					//Epoll_ctl(env->epoll_fd, EPOLL_CTL_MOD,
-						//task->socket_fd, &task->event);
-			} else if (ev[i].events & EPOLLIN) {
-				//task = env->tasks[?];
-				//status = tasks->todo(tasks);
-				//if (status == 0) {
-					//switch (task->flag) {
-						//case FLAG_RESPONSE_STOP:
-							//string2response(task->response);
-							//switch (task->response->status[0]) {
-								//case '2': // 2xx
-									//task->todo = save_data;
-								//case '3': // 3xx
-									//task_prepare_redirection(task);
-									//Epoll_ctl(env->epoll_fd, EPOLL_CTL_MOD,
-											//task->socket_fd, &task->event);
-									//break;
-								//default: // 1xx, 4xx, 5xx
-									//fprintf(stderr, "[ao] http error: '%s'\n",
-											//task->response->status);
-									//exit(EXIT_FAILURE);
-							//}
-							//break;
-						//case FLAG_DOWNLOAD_FINISHED:
-							//close(task->socket_fd);
-							//Epoll_ctl(env->epoll_fd, EPOLL_CTL_DEL,
-									//task->socket_fd, NULL);
-							//fd_count--;
-							//break;
-					//}
-				//} else if (status == 2) {
-					//store_data
-				//}
+			} else if (ev[i].events & EPOLLOUT) { // send
+				task = get_task_by_fd(env, ev[i].data.fd);
+				status = task->todo(task);
+				if (status == 0) // request is sent
+					Epoll_ctl(env->epoll_fd, EPOLL_CTL_MOD,
+							task->socket_fd, &task->event);
+			} else if (ev[i].events & EPOLLIN) { // read
+				task = get_task_by_fd(env, ev[i].data.fd);
+				status = task->todo(task);
+				if (status == 0) { // finished
+					switch (task->flag) {
+						case FLAG_RESPONSE_STOP: // return by recv_response
+							string2response(task->response);
+							switch (task->response->status[0]) {
+								case '2': // 2xx
+									task->todo = save_data;
+								case '3': // 3xx
+									task_prepare_redirection(task);
+									Epoll_ctl(env->epoll_fd, EPOLL_CTL_MOD,
+											task->socket_fd, &task->event);
+									break;
+								default: // 1xx, 4xx, 5xx
+									fprintf(stderr, "[ao] http error: '%s'\n",
+											task->response->status);
+									exit(EXIT_FAILURE);
+							}
+							break;
+						case FLAG_DOWNLOAD_FINISHED: // return by save_data
+							Epoll_ctl(env->epoll_fd, EPOLL_CTL_DEL,
+									task->socket_fd, NULL);
+							fd_count--;
+							break;
+					}
+				} else if (status == 2) { // save_data get some data
+					return;
+				}
 			}
 		}
 	}

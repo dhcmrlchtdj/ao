@@ -40,11 +40,20 @@ void environ_update_by_log(environ_t *env) {
 }
 
 
+
+task_t *get_task_by_fd(environ_t *env, int fd) {
+	for (int i = 0; i < env->partition; i++)
+		if (env->tasks[i].socket_fd == fd)
+			return &env->tasks[i];
+	return NULL;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 
 
 task_t *new_task(off_t start, off_t stop) {
-	task_t *task = Malloc(sizeof(task_t));
+	task_t *task = Calloc(1, sizeof(task_t));
 	initial_task(task, start, stop);
 	return task;
 }
@@ -59,15 +68,15 @@ void del_task(task_t *task) {
 
 
 void initial_task(task_t *task, off_t start, off_t stop) {
+	task->start = start;
+	task->stop = stop;
+	task->redirection = MAX_REDIRECTION;
+
+	task->url = &env.url;
 	create_connection(task);
 	task->event.data.fd = task->socket_fd;
 	task->event.events = EPOLLOUT;
 	task->todo = wait_connect;
-
-	task->url = &env.url;
-	task->start = start;
-	task->stop = stop;
-	task->redirection = MAX_REDIRECTION;
 
 	task->request = new_request();
 	task_update_request(task);
@@ -81,7 +90,7 @@ void destroy_task(task_t *task) {
 	if (task->redirection != MAX_REDIRECTION) del_url(task->url);
 	del_request(task->request);
 	del_response(task->response);
-	shutdown(task->socket_fd, SHUT_RDWR);
+	Shutdown(task->socket_fd, SHUT_RDWR);
 	Close(task->socket_fd);
 }
 
@@ -111,7 +120,7 @@ void task_prepare_redirection(task_t *task) {
 	task->url = new_url();
 	parse_url(task->url, url);
 
-	shutdown(task->socket_fd, SHUT_RDWR);
+	Shutdown(task->socket_fd, SHUT_RDWR);
 	Close(task->socket_fd);
 
 	create_connection(task);

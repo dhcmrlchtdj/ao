@@ -1,7 +1,7 @@
 CC = clang
 CFLAGS = -O0 -g
 LDFLAGS = -pthread
-FLAGS = $(CFLAGS) $(LDFLAGS)
+FLAGS = $(CFLAGS) #$(LDFLAGS)
 
 source = \
 		 ao.o\

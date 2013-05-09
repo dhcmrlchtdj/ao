@@ -37,7 +37,10 @@ char *get_header(header_field_t *hf, char *name) {
 
 
 void set_header(header_field_t *hf, char *name, char *value) {
-	assert(hf != NULL);
+	if (hf == NULL) {
+		fprintf(stderr, "[ao] header field is NULL.\n");
+		return;
+	}
 	while (1) {
 		if (strcasecmp(hf->name, name) == 0) {
 			free(hf->value);
