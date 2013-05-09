@@ -34,7 +34,7 @@ void dl_start(environ_t *env) {
 	}
 
 	Gettimeofday(&env->t1);
-	set_timer(env->timer_fd, 250000);
+	set_timer(env->timer_fd, 200);
 
 	while (fd_count > 2) { // timer_fd && signal_fd remain
 		nfds = Epoll_wait(env->epoll_fd, ev, fd_count, -1);
@@ -42,7 +42,7 @@ void dl_start(environ_t *env) {
 			if (ev[i].data.fd == env->timer_fd) { // timer
 				Gettimeofday(&env->t2);
 				output_progress_bar(env);
-				set_timer(env->timer_fd, 250000);
+				set_timer(env->timer_fd, 200);
 			} else if (ev[i].data.fd == env->signal_fd) {
 				dl_save_status(env);
 				exit(EXIT_SUCCESS);

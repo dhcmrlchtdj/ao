@@ -23,20 +23,20 @@ void static_copy(char *dest, size_t dest_size, char *src, size_t src_size) {
 ///////////////////////////////////////////////////////////////////////////////
 
 
-void set_timer(int timer_fd, long nsec) {
+void set_timer(int timer_fd, long millisecond) {
 	// {0, 0} means alarm once
-	// {0, nsec} means after nsec nanoseconds
-	struct itimerspec interval = { {0, 0}, {0, nsec} };
+	// {0, n} means after n nanoseconds
+	struct itimerspec interval = { {0, 0}, {0, millisecond * 1000000} };
 	timerfd_settime(timer_fd, 0, &interval, NULL);
 }
 
 
 
-// return ms
+// return millisecond
 long delta_time(struct timeval *t1, struct timeval *t2) {
 	long sec = t2->tv_sec - t1->tv_sec;
 	long usec = t2->tv_usec - t1->tv_usec;
-	return ((sec * 1000000 + usec) / 1000);
+	return (sec * 1000000 + usec) / 1000;
 }
 
 
