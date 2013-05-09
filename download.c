@@ -54,7 +54,7 @@ void dl_start(environ_t *env) {
 							string2response(task->response);
 							switch (task->response->status[0]) {
 								case '2': // 2xx
-									task->todo = save_data;
+									break;
 								case '3': // 3xx
 									task_prepare_redirection(task);
 									Epoll_ctl(env->epoll_fd, EPOLL_CTL_MOD,
@@ -84,7 +84,6 @@ void dl_start(environ_t *env) {
 
 
 void dl_prepare(environ_t *env) {
-	/*task_t *task = &env->tasks[0];*/
 	task_t *task = new_task(0, 1);
 	// start
 	dl_get_response(env->epoll_fd, task);
@@ -127,6 +126,8 @@ void dl_get_response(int epfd, task_t *task) {
 				string2response(task->response);
 				switch (task->response->status[0]) {
 					case '2': // 2xx
+						Epoll_ctl(epfd, EPOLL_CTL_DEL,
+								task->socket_fd, NULL);
 						return;
 					case '3': // 3xx
 						task_prepare_redirection(task);
@@ -161,11 +162,13 @@ void dl_check_file(environ_t *env) {
 			// file not found
 			env->has_log = false;
 			static_copy(env->filename, SHORT_STR, filename, strlen(filename));
+			printf("[ao] save to '%s'.\n", env->filename);
 			return;
 		} else if (access(env->logfile, F_OK) == 0) {
 			// log file found
 			env->has_log = true;
 			static_copy(env->filename, SHORT_STR, filename, strlen(filename));
+			printf("[ao] save to '%s'.\n", env->filename);
 			return;
 		} else {
 			// test next name
@@ -221,8 +224,7 @@ void dl_get_info_from_task(environ_t *env) {
 		// initial tasks
 		del_task(env->tasks);
 		env->tasks = Malloc(env->partition * sizeof(task_t));
-		off_t block_size = env->filesize / env->partition;
-		off_t start = 0, stop = 0;
+		off_t block_size = env->filesize / env->partition, start = 0, stop = 0;
 		int i;
 		for (i = 0; i < env->partition - 1; i++) {
 			start = stop;

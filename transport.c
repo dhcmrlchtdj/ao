@@ -64,6 +64,7 @@ int recv_response(task_t *task) {
 					break;
 			}
 			if (task->flag == FLAG_RESPONSE_STOP) { // response got
+				task->todo = save_data;
 				return 0;
 			} else {
 				task->offset++;

@@ -29,6 +29,7 @@ void destroy_environ(environ_t *env) {
 	free(env->tasks);
 	Close(env->epoll_fd);
 	Close(env->timer_fd);
+	Close(env->file_fd);
 }
 
 

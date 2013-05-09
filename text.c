@@ -38,6 +38,7 @@ void parse_options(environ_t *env, int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	} else {
 		parse_url(&env->url, argv[optind]); // get download link
+		printf("[ao] fetch '%s'.\n", argv[optind]);
 	}
 }
 
