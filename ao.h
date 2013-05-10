@@ -102,7 +102,7 @@ void initial_task(task_t *task, off_t start, off_t stop);
 void destroy_task(task_t *task);
 void task_update_request(task_t *task);
 void task_prepare_redirection(task_t *task);
-void task_update_by_log(task_t *task);
+void task_update_pointer(task_t *task);
 
 
 #endif

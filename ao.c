@@ -77,17 +77,7 @@ void initial_task(task_t *task, off_t start, off_t stop) {
 	task->start = start;
 	task->stop = stop;
 	task->redirection = MAX_REDIRECTION;
-
-	task->url = &env.url;
-	create_connection(task);
-	task->event.data.fd = task->socket_fd;
-	task->event.events = EPOLLOUT;
-	task->todo = wait_connect;
-
-	task->request = new_request();
-	task_update_request(task);
-
-	task->response = new_response();
+	task_update_pointer(task);
 }
 
 
@@ -145,13 +135,12 @@ void task_prepare_redirection(task_t *task) {
 
 
 
-void task_update_by_log(task_t *task) {
+void task_update_pointer(task_t *task) {
+	task->url = &env.url;
 	create_connection(task);
 	task->event.data.fd = task->socket_fd;
 	task->event.events = EPOLLOUT;
 	task->todo = wait_connect;
-
-	task->url = &env.url;
 
 	task->request = new_request();
 	task_update_request(task);

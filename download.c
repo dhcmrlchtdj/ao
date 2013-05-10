@@ -6,6 +6,7 @@ void start_download(environ_t *env) {
 	dl_start(env);
 	//clean up
 	if (env->has_log) Unlink(env->logfile);
+	printf("\n[ao] download finished.\n");
 }
 
 
@@ -34,7 +35,7 @@ void dl_start(environ_t *env) {
 	}
 
 	Gettimeofday(&env->t1);
-	set_timer(env->timer_fd, 200);
+	set_timer(env->timer_fd, 300);
 
 	while (fd_count > 2) { // timer_fd && signal_fd remain
 		nfds = Epoll_wait(env->epoll_fd, ev, fd_count, -1);
@@ -42,7 +43,7 @@ void dl_start(environ_t *env) {
 			if (ev[i].data.fd == env->timer_fd) { // timer
 				Gettimeofday(&env->t2);
 				output_progress_bar(env);
-				set_timer(env->timer_fd, 200);
+				set_timer(env->timer_fd, 300);
 			} else if (ev[i].data.fd == env->signal_fd) {
 				dl_save_status(env);
 				exit(EXIT_SUCCESS);
@@ -97,22 +98,18 @@ void dl_start(environ_t *env) {
 
 
 void dl_prepare(environ_t *env) {
-	task_t *task = new_task(0, 1);
+	env->tasks = new_task(0, 1);
 	// start
-	dl_get_response(env->epoll_fd, task);
+	dl_get_response(env->epoll_fd, env->tasks);
 	// get filename
 	if (env->filename[0] == '\0')
-		get_filename_from_path(env->filename, task->url->path);
+		get_filename_from_path(env->filename, env->tasks->url->path);
 	// whether file existed or log file existed
 	dl_check_file(env);
-	if (env->has_log) {
-		// support range
-		del_task(task);
+	if (env->has_log)
 		dl_get_info_from_log(env);
-	} else {
-		env->tasks = task;
+	else
 		dl_get_info_from_task(env);
-	}
 }
 
 
@@ -193,20 +190,23 @@ void dl_check_file(environ_t *env) {
 
 
 void dl_get_info_from_log(environ_t *env) {
+	// support range
+	printf("[ao] get status from '%s'.\n", env->logfile);
 	FILE *fp = Fopen(env->logfile, "rb");
 	// update environ
+	del_task(env->tasks);
 	Close(env->epoll_fd);
 	Close(env->timer_fd);
 	Close(env->signal_fd);
 	fread(env, sizeof(environ_t), 1, fp);
 	environ_update_by_log(env);
+	printf("[ao] filesize: %zd.\n", env->filesize);
 	// create tasks
 	env->tasks = Malloc(env->partition * sizeof(task_t));
 	// update tasks
-	for (int i = 0; i < env->partition; i++) {
-		fread(&env->tasks[i], sizeof(task_t), 1, fp);
-		task_update_by_log(&env->tasks[i]);
-	}
+	fread(env->tasks, sizeof(task_t), env->partition, fp);
+	for (int i = 0; i < env->partition; i++)
+		task_update_pointer(&env->tasks[i]);
 	Fclose(fp);
 }
 
@@ -259,4 +259,5 @@ void dl_save_status(environ_t *env) {
 	fwrite(env, sizeof(environ_t), 1, log);
 	fwrite(env->tasks, sizeof(task_t), env->partition, log);
 	Fclose(log);
+	printf("\n[ao] status info save in '%s'\n", env->logfile);
 }
