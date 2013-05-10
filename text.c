@@ -59,6 +59,7 @@ void print_usage(void) {
 
 
 void output_progress_bar(environ_t *env) {
+	Gettimeofday(&env->t2);
 	if (env->filesize == 0) {
 		_unknown_size(env);
 	} else {

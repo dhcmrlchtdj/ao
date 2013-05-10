@@ -41,7 +41,6 @@ void dl_start(environ_t *env) {
 		nfds = Epoll_wait(env->epoll_fd, ev, fd_count, -1);
 		for (i = 0; i < nfds; i++) {
 			if (ev[i].data.fd == env->timer_fd) { // timer
-				Gettimeofday(&env->t2);
 				output_progress_bar(env);
 				set_timer(env->timer_fd, 300);
 			} else if (ev[i].data.fd == env->signal_fd) {
@@ -92,6 +91,7 @@ void dl_start(environ_t *env) {
 			}
 		}
 	}
+	output_progress_bar(env);
 }
 
 
@@ -172,13 +172,13 @@ void dl_check_file(environ_t *env) {
 			// file not found
 			env->has_log = false;
 			static_copy(env->filename, SHORT_STR, filename, strlen(filename));
-			printf("[ao] save to '%s'.\n", env->filename);
+			printf("[ao] file name: '%s'.\n", env->filename);
 			return;
 		} else if (access(env->logfile, F_OK) == 0) {
 			// file exist and log file found
 			env->has_log = true;
 			static_copy(env->filename, SHORT_STR, filename, strlen(filename));
-			printf("[ao] save to '%s'.\n", env->filename);
+			printf("[ao] file name: '%s'.\n", env->filename);
 			return;
 		} else {
 			// test next name
@@ -200,7 +200,7 @@ void dl_get_info_from_log(environ_t *env) {
 	Close(env->signal_fd);
 	fread(env, sizeof(environ_t), 1, fp);
 	environ_update_by_log(env);
-	printf("[ao] filesize: %zd.\n", env->filesize);
+	printf("[ao] file size: %zd Bytes.\n", env->filesize);
 	printf("[ao] file divided into %d part.\n", env->partition);
 	// create tasks
 	env->tasks = Malloc(env->partition * sizeof(task_t));
@@ -224,10 +224,10 @@ void dl_get_info_from_task(environ_t *env) {
 		val = get_header(hfptr, "Content-Length");
 		if (val == NULL) {
 			env->filesize = 0;
-			printf("[ao] filesize not found.\n");
+			printf("[ao] file size not found.\n");
 		} else {
 			env->filesize = atol(val);
-			printf("[ao] filesize: %ld.\n", env->filesize);
+			printf("[ao] file size: %zd Bytes.\n", env->filesize);
 		}
 	} else {
 		// range
@@ -235,7 +235,7 @@ void dl_get_info_from_task(environ_t *env) {
 		// filesize
 		char *pos = strchr(val, '/');
 		env->filesize = atol(++pos);
-		printf("[ao] filesize: %ld.\n", env->filesize);
+		printf("[ao] file size: %zd Bytes.\n", env->filesize);
 		printf("[ao] file divided into %d part.\n", env->partition);
 		// initial tasks
 		del_task(env->tasks);
