@@ -89,7 +89,6 @@ struct task_t {
 	off_t start;
 	off_t stop;
 	off_t size;
-	off_t offset;
 	size_t remain;
 	url_t *url;
 	request_t *request;

@@ -67,8 +67,8 @@ void dl_start(environ_t *env) {
 				if (status == 2) {
 					// save_data get some data
 					Pwrite(env->file_fd, task->response->data,
-							task->size, task->offset);
-					task->offset += task->size;
+							task->size, task->start);
+					task->start += task->size;
 				} else if (status == 0) {
 					// finished
 					switch (task->flag) {
