@@ -109,7 +109,7 @@ void _known_size(environ_t *env) {
 	while (pos++ < percent) putchar('.');
 	(pos == 51) ? putchar('.') : putchar('#');
 
-	printf("%*c [%4dKiB/s] [%02d:%02d]",
+	printf("%*c [%4dKiB/s] [%02d:%02d]   \b\b\b",
 			52 - pos, ']', speed, left_min, left_sec);
 
 	fflush(stdout);
@@ -157,7 +157,7 @@ void _unknown_size(environ_t *env) {
 	while (pos++ < dot) putchar('.');
 	(pos == 51) ? putchar('.') : putchar('#');
 
-	printf("%*c [%4dKiB/s] [%02d:%02d]",
+	printf("%*c [%4dKiB/s] [%02d:%02d]   \b\b\b",
 			52 - pos, ']', speed, left_min, left_sec);
 
 	fflush(stdout);
