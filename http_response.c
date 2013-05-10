@@ -2,7 +2,8 @@
 
 
 response_t *new_response(void) {
-	response_t *resp = Malloc(sizeof(response_t));
+	//response_t *resp = Malloc(sizeof(response_t));
+	response_t *resp = Calloc(1, sizeof(response_t));
 	resp->hf = NULL;
 	//resp->data = new_response_data();
 	return resp;

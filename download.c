@@ -13,9 +13,11 @@ void start_download(environ_t *env) {
 
 void dl_start(environ_t *env) {
 	int i, status, nfds;
-	int fd_count = env->partition + 2; // timer_fd and signal_fd
-	struct epoll_event ev[fd_count], timer_ev, signal_ev;
+	int fd_count = env->partition;
 	task_t *task;
+	struct epoll_event ev[fd_count], tmp_ev;
+	memset(&tmp_ev, 0, sizeof(struct epoll_event));
+	tmp_ev.events = EPOLLIN;
 
 	env->file_fd = Open(env->filename, O_WRONLY | O_CREAT, 0644);
 
@@ -24,44 +26,60 @@ void dl_start(environ_t *env) {
 		task = &env->tasks[i];
 		Epoll_ctl(env->epoll_fd, EPOLL_CTL_ADD, task->socket_fd, &task->event);
 	}
-	timer_ev.data.fd = env->timer_fd;
-	timer_ev.events = EPOLLIN;
-	Epoll_ctl(env->epoll_fd, EPOLL_CTL_ADD, env->timer_fd, &timer_ev);
+	tmp_ev.data.fd = env->timer_fd;
+	Epoll_ctl(env->epoll_fd, EPOLL_CTL_ADD, env->timer_fd, &tmp_ev);
 	if (env->support_range) {
 		Sigprocmask(SIG_BLOCK, &env->sigset);
-		signal_ev.data.fd = env->signal_fd;
-		signal_ev.events = EPOLLIN;
-		Epoll_ctl(env->epoll_fd, EPOLL_CTL_ADD, env->signal_fd, &signal_ev);
+		tmp_ev.data.fd = env->signal_fd;
+		Epoll_ctl(env->epoll_fd, EPOLL_CTL_ADD, env->signal_fd, &tmp_ev);
 	}
 
 	Gettimeofday(&env->t1);
 	set_timer(env->timer_fd, 300);
 
-	while (fd_count > 2) { // timer_fd && signal_fd remain
+	while (fd_count != 0) { // timer_fd && signal_fd remain
 		nfds = Epoll_wait(env->epoll_fd, ev, fd_count, -1);
 		for (i = 0; i < nfds; i++) {
-			if (ev[i].data.fd == env->timer_fd) { // timer
+			if (ev[i].data.fd == env->timer_fd) {
+				// timer
 				output_progress_bar(env);
 				set_timer(env->timer_fd, 300);
 			} else if (ev[i].data.fd == env->signal_fd) {
+				// signal
 				dl_save_status(env);
 				exit(EXIT_SUCCESS);
 			} else if ((ev[i].events & EPOLLERR)
-					|| (ev[i].events & EPOLLHUP)) { // error
+					|| (ev[i].events & EPOLLHUP)) {
+				// error
 				fprintf(stderr, "[ao] epollerr or epollhup\n");
 				exit(EXIT_FAILURE);
-			} else if (ev[i].events & EPOLLOUT) { // send
+			} else if (ev[i].events & EPOLLOUT) {
+				// send
 				task = get_task_by_fd(env, ev[i].data.fd);
 				status = task->todo(task);
 				if (status == 0) // request is sent
 					Epoll_ctl(env->epoll_fd, EPOLL_CTL_MOD,
 							task->socket_fd, &task->event);
-			} else if (ev[i].events & EPOLLIN) { // read
+			} else if (ev[i].events & EPOLLIN) {
+				// read
 				task = get_task_by_fd(env, ev[i].data.fd);
 				status = task->todo(task);
-				if (status == 0) { // finished
+				if (status == 2) {
+					// save_data get some data
+					Pwrite(env->file_fd, task->response->data,
+							task->size, task->offset);
+					task->offset += task->size;
+				} else if (status == 0) {
+					// finished
 					switch (task->flag) {
-						case FLAG_RESPONSE_STOP: // return by recv_response
+						case FLAG_DOWNLOAD_FINISHED:
+							// return by save_data
+							Epoll_ctl(env->epoll_fd, EPOLL_CTL_DEL,
+									task->socket_fd, NULL);
+							fd_count--;
+							break;
+						case FLAG_RESPONSE_STOP:
+							// return by recv_response
 							string2response(task->response);
 							switch (task->response->status[0]) {
 								case '2': // 2xx
@@ -77,16 +95,7 @@ void dl_start(environ_t *env) {
 									exit(EXIT_FAILURE);
 							}
 							break;
-						case FLAG_DOWNLOAD_FINISHED: // return by save_data
-							Epoll_ctl(env->epoll_fd, EPOLL_CTL_DEL,
-									task->socket_fd, NULL);
-							fd_count--;
-							break;
 					}
-				} else if (status == 2) { // save_data get some data
-					Pwrite(env->file_fd, task->response->data,
-							task->size, task->offset);
-					task->offset += task->size;
 				}
 			}
 		}
@@ -201,7 +210,7 @@ void dl_get_info_from_log(environ_t *env) {
 	fread(env, sizeof(environ_t), 1, fp);
 	environ_update_by_log(env);
 	printf("[ao] file size: %zd Bytes.\n", env->filesize);
-	printf("[ao] file divided into %d part.\n", env->partition);
+	printf("[ao] file divided into %d parts.\n", env->partition);
 	// create tasks
 	env->tasks = Malloc(env->partition * sizeof(task_t));
 	// update tasks
@@ -236,10 +245,10 @@ void dl_get_info_from_task(environ_t *env) {
 		char *pos = strchr(val, '/');
 		env->filesize = atol(++pos);
 		printf("[ao] file size: %zd Bytes.\n", env->filesize);
-		printf("[ao] file divided into %d part.\n", env->partition);
+		printf("[ao] file divided into %d parts.\n", env->partition);
 		// initial tasks
 		del_task(env->tasks);
-		env->tasks = Malloc(env->partition * sizeof(task_t));
+		env->tasks = Calloc(env->partition, sizeof(task_t));
 		off_t block_size = env->filesize / env->partition, start = 0, stop = 0;
 		int i;
 		for (i = 0; i < env->partition - 1; i++) {
