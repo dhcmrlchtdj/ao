@@ -35,7 +35,7 @@ void dl_start(environ_t *env) {
 	}
 
 	Gettimeofday(&env->t1);
-	set_timer(env->timer_fd, 300);
+	set_timer(env->timer_fd, 100);
 
 	while (fd_count != 0) { // timer_fd && signal_fd remain
 		nfds = Epoll_wait(env->epoll_fd, ev, fd_count, -1);
@@ -43,7 +43,7 @@ void dl_start(environ_t *env) {
 			if (ev[i].data.fd == env->timer_fd) {
 				// timer
 				output_progress_bar(env);
-				set_timer(env->timer_fd, 300);
+				set_timer(env->timer_fd, 400);
 			} else if (ev[i].data.fd == env->signal_fd) {
 				// signal
 				dl_save_status(env);
@@ -51,7 +51,7 @@ void dl_start(environ_t *env) {
 			} else if ((ev[i].events & EPOLLERR)
 					|| (ev[i].events & EPOLLHUP)) {
 				// error
-				fprintf(stderr, "[ao] epollerr or epollhup\n");
+				fprintf(stderr, "[ao] epollerr or epollhup.\n");
 				exit(EXIT_FAILURE);
 			} else if (ev[i].events & EPOLLOUT) {
 				// send
@@ -85,8 +85,10 @@ void dl_start(environ_t *env) {
 								case '2': // 2xx
 									break;
 								case '3': // 3xx
+									Epoll_ctl(env->epoll_fd, EPOLL_CTL_DEL,
+											task->socket_fd, NULL);
 									task_prepare_redirection(task);
-									Epoll_ctl(env->epoll_fd, EPOLL_CTL_MOD,
+									Epoll_ctl(env->epoll_fd, EPOLL_CTL_ADD,
 											task->socket_fd, &task->event);
 									break;
 								default: // 1xx, 4xx, 5xx
@@ -102,7 +104,6 @@ void dl_start(environ_t *env) {
 	}
 	output_progress_bar(env);
 }
-
 
 
 
@@ -131,7 +132,7 @@ void dl_get_response(int epfd, task_t *task) {
 	while (1) {
 		Epoll_wait(epfd, &ev, 1, -1);
 		if ((ev.events & EPOLLERR) || (ev.events & EPOLLHUP)) {
-			fprintf(stderr, "[ao] epoll error\n");
+			fprintf(stderr, "[ao] epollerr or epollhup.\n");
 			exit(EXIT_FAILURE);
 		} else if (ev.events & EPOLLOUT) {
 			// wait connect && send request
@@ -149,8 +150,10 @@ void dl_get_response(int epfd, task_t *task) {
 								task->socket_fd, NULL);
 						return;
 					case '3': // 3xx
+						Epoll_ctl(epfd, EPOLL_CTL_DEL,
+								task->socket_fd, NULL);
 						task_prepare_redirection(task);
-						Epoll_ctl(epfd, EPOLL_CTL_MOD,
+						Epoll_ctl(epfd, EPOLL_CTL_ADD,
 								task->socket_fd, &task->event);
 						break;
 					default: // 1xx, 4xx, 5xx
@@ -201,12 +204,13 @@ void dl_check_file(environ_t *env) {
 void dl_get_info_from_log(environ_t *env) {
 	// support range
 	printf("[ao] get status from '%s'.\n", env->logfile);
-	FILE *fp = Fopen(env->logfile, "rb");
-	// update environ
+	// clear env
 	del_task(env->tasks);
 	Close(env->epoll_fd);
 	Close(env->timer_fd);
 	Close(env->signal_fd);
+	// update environ
+	FILE *fp = Fopen(env->logfile, "rb");
 	fread(env, sizeof(environ_t), 1, fp);
 	environ_update_by_log(env);
 	printf("[ao] file size: %zd Bytes.\n", env->filesize);

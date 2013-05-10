@@ -76,7 +76,6 @@ void del_task(task_t *task) {
 void initial_task(task_t *task, off_t start, off_t stop) {
 	task->start = start;
 	task->stop = stop;
-	task->redirection = MAX_REDIRECTION;
 	task_update_pointer(task);
 }
 
@@ -102,7 +101,7 @@ void task_update_request(task_t *task) {
 
 
 void task_prepare_redirection(task_t *task) {
-	if (task->redirection-- == 0) {
+	if (task->redirection == 0) {
 		fprintf(stderr, "[ao] redirection too many times.\n");
 		exit(EXIT_FAILURE);
 	}
@@ -112,7 +111,8 @@ void task_prepare_redirection(task_t *task) {
 		fprintf(stderr, "[ao] location not found.\n");
 		exit(EXIT_FAILURE);
 	}
-	if (task->redirection != 4) del_url(task->url); // not first redirection
+	if (task->redirection-- != MAX_REDIRECTION)
+		del_url(task->url); // not first redirection
 	task->url = new_url();
 	parse_url(task->url, url);
 
@@ -136,6 +136,7 @@ void task_prepare_redirection(task_t *task) {
 
 
 void task_update_pointer(task_t *task) {
+	task->redirection = MAX_REDIRECTION;
 	task->url = &env.url;
 	create_connection(task);
 	task->event.data.fd = task->socket_fd;
