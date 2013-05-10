@@ -201,6 +201,7 @@ void dl_get_info_from_log(environ_t *env) {
 	fread(env, sizeof(environ_t), 1, fp);
 	environ_update_by_log(env);
 	printf("[ao] filesize: %zd.\n", env->filesize);
+	printf("[ao] file divided into %d part.\n", env->partition);
 	// create tasks
 	env->tasks = Malloc(env->partition * sizeof(task_t));
 	// update tasks
@@ -235,6 +236,7 @@ void dl_get_info_from_task(environ_t *env) {
 		char *pos = strchr(val, '/');
 		env->filesize = atol(++pos);
 		printf("[ao] filesize: %ld.\n", env->filesize);
+		printf("[ao] file divided into %d part.\n", env->partition);
 		// initial tasks
 		del_task(env->tasks);
 		env->tasks = Malloc(env->partition * sizeof(task_t));
