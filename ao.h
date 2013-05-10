@@ -88,8 +88,9 @@ struct task_t {
 	int redirection;
 	off_t start;
 	off_t stop;
-	off_t size;
+	off_t offset;
 	size_t remain;
+	ssize_t size;
 	url_t *url;
 	request_t *request;
 	response_t *response;
