@@ -101,16 +101,19 @@ void task_update_request(task_t *task) {
 
 
 void task_prepare_redirection(task_t *task) {
-	if (task->redirection == 0) {
-		fprintf(stderr, "[ao] redirection too many times.\n");
+	char *url = get_header(task->response->hf, "Location");
+	if (url == NULL) {
+		fprintf(stderr, "[ao] redirction error: "
+				"Location not found.\n%s\n", task->response->data);
 		exit(EXIT_FAILURE);
 	}
 
-	char *url = get_header(task->response->hf, "Location");
-	if (url == NULL) {
-		fprintf(stderr, "[ao] location not found.\n");
+	if (task->redirection == 0) {
+		fprintf(stderr, "[ao] redirection error: "
+				"redirection too many times.\n%s\n", url);
 		exit(EXIT_FAILURE);
 	}
+
 	if (task->redirection-- != MAX_REDIRECTION)
 		del_url(task->url); // not first redirection
 	task->url = new_url();
