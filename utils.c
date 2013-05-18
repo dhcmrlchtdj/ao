@@ -33,7 +33,7 @@ void set_timer(int timer_fd, long millisecond) {
 
 
 // return millisecond
-long delta_time(struct timeval *t1, struct timeval *t2) {
+long time_diff(struct timeval *t1, struct timeval *t2) {
 	long sec = t2->tv_sec - t1->tv_sec;
 	long usec = t2->tv_usec - t1->tv_usec;
 	return (sec * 1000000 + usec) / 1000;

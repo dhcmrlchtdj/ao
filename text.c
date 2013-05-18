@@ -70,39 +70,26 @@ void output_progress_bar(environ_t *env) {
 
 
 void _known_size(environ_t *env) {
-	// `st_blocks * 512` approximates the actual file size
-	struct stat file_stat;
-	off_t file_size;
-	fstat(env->file_fd, &file_stat);
-	file_size = file_stat.st_blocks * 512;
-	// file_size maybe large than actual file size
-	if (file_size > env->filesize) file_size = env->filesize;
+	static size_t last_size = 0;
 
-	// speed and left time
-	static int speed = 0;
-	static int left_min = 0;
-	static int left_sec = 0;
-	int left_time;
+	long delta_time = time_diff(&env->t1, &env->t2);
+	off_t delta_size = env->download_size - last_size;
+	if (delta_time == 0 || delta_size == 0) return;
 
-	long d_time = delta_time(&env->t1, &env->t2);
-	off_t d_size = file_size - env->last_size;
-	if (d_size != 0) {
-		speed = d_size * 1000 / d_time; // in bytes
-		left_time = (env->filesize - file_size) / speed;
-		left_min = left_time / 60;
-		left_sec = left_time % 60;
-		speed /= 1024; // convert to kib
+	double speed = delta_size / delta_time; // byte / ms
+	int left_time = (env->filesize - env->download_size) / speed / 1000;
+	int left_min = left_time / 60;
+	int left_sec = left_time % 60;
 
-		env->last_size = file_size;
-		env->t1 = env->t2;
-	}
+	last_size = env->download_size;
+	env->t1 = env->t2;
 
 	// back to start of the progress bar
 	int pos, percent;
 	pos = 0;
 	while (pos++ < 200) putchar('\b');
 
-	percent = file_size * 100 / env->filesize;
+	percent = env->download_size / env->filesize;
 	printf("[%3d%%] [", percent);
 
 	pos = 0;
@@ -110,8 +97,8 @@ void _known_size(environ_t *env) {
 	while (pos++ < percent) putchar('.');
 	(pos == 51) ? putchar('.') : putchar('#');
 
-	printf("%*c [%4dKiB/s] [%02d:%02d]   \b\b\b",
-			52 - pos, ']', speed, left_min, left_sec);
+	printf("%*c [ %4.1fKiB/s] [%02d:%02d]   \b\b\b",
+			52 - pos, ']', speed * 0.97656, left_min, left_sec);
 
 	fflush(stdout);
 }
@@ -119,30 +106,16 @@ void _known_size(environ_t *env) {
 
 
 void _unknown_size(environ_t *env) {
-	// `st_blocks * 512` approximates the actual file size
-	struct stat file_stat;
-	off_t file_size;
-	fstat(env->file_fd, &file_stat);
-	file_size = file_stat.st_blocks * 512;
+	static size_t last_size = 0;
 
-	// speed and left time
-	static int speed = 0;
-	static int left_min = 0;
-	static int left_sec = 0;
-	int left_time;
+	long delta_time = time_diff(&env->t1, &env->t2);
+	off_t delta_size = env->download_size - last_size;
+	if (delta_time == 0 || delta_size == 0) return;
 
-	long d_time = delta_time(&env->t1, &env->t2);
-	off_t d_size = file_size - env->last_size;
-	if (d_size != 0) {
-		speed = d_size * 1000 / d_time; // in bytes
-		left_time = (env->filesize - file_size) / speed;
-		left_min = left_time / 60;
-		left_sec = left_time % 60;
-		speed /= 1024; // convert to kib
+	double speed = delta_size / delta_time; // byte / ms
 
-		env->last_size = file_size;
-		env->t1 = env->t2;
-	}
+	last_size = env->download_size;
+	env->t1 = env->t2;
 
 	// back to start of the progress bar
 	int pos;
@@ -158,8 +131,8 @@ void _unknown_size(environ_t *env) {
 	while (pos++ < dot) putchar('.');
 	(pos == 51) ? putchar('.') : putchar('#');
 
-	printf("%*c [%4dKiB/s] [%02d:%02d]   \b\b\b",
-			52 - pos, ']', speed, left_min, left_sec);
+	printf("%*c [ %4.1fKiB/s] [??:??]   \b\b\b",
+			52 - pos, ']', speed * 0.97656);
 
 	fflush(stdout);
 }

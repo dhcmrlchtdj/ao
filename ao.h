@@ -62,7 +62,7 @@ struct environ_t {
 	int file_fd;
 	int partition; // partition count
 	size_t filesize; // filesize
-	size_t last_size; // last record by ouput progress bar
+	size_t download_size; // last record by ouput progress bar
 	bool support_range;
 	bool has_log;
 	char filename[SHORT_STR]; // filename

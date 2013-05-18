@@ -35,7 +35,7 @@ void dl_start(environ_t *env) {
 	}
 
 	Gettimeofday(&env->t1);
-	set_timer(env->timer_fd, 100);
+	set_timer(env->timer_fd, 300);
 
 	while (fd_count != 0) { // timer_fd && signal_fd remain
 		nfds = Epoll_wait(env->epoll_fd, ev, fd_count, -1);
@@ -43,7 +43,7 @@ void dl_start(environ_t *env) {
 			if (ev[i].data.fd == env->timer_fd) {
 				// timer
 				output_progress_bar(env);
-				set_timer(env->timer_fd, 400);
+				set_timer(env->timer_fd, 300);
 			} else if (ev[i].data.fd == env->signal_fd) {
 				// signal
 				dl_save_status(env);
@@ -61,14 +61,15 @@ void dl_start(environ_t *env) {
 					Epoll_ctl(env->epoll_fd, EPOLL_CTL_MOD,
 							task->socket_fd, &task->event);
 			} else if (ev[i].events & EPOLLIN) {
-				// read
+				// recv
 				task = get_task_by_fd(env, ev[i].data.fd);
 				status = task->todo(task);
 				if (status == 2) {
-					// save_data get some data
+					// save_data return
 					Pwrite(env->file_fd, task->response->data,
 							task->size, task->start);
 					task->start += task->size;
+					env->download_size += task->size;
 				} else if (status == 0) {
 					// finished
 					switch (task->flag) {

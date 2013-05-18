@@ -6,7 +6,7 @@ char *dynamic_copy(char *src, size_t src_size);
 ///////////////////////////////////////////////////////////////////////////////
 
 void set_timer(int timer_fd, long millisecond);
-long delta_time(struct timeval *t1, struct timeval *t2);
+long time_diff(struct timeval *t1, struct timeval *t2);
 
 ///////////////////////////////////////////////////////////////////////////////
 
